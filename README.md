@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Ninja Tactics web demo
 
 Phase 1 provides the responsive React application foundation for the Ninja Tactics browser vertical slice. It includes the shared shell, seven direct-link routes, placeholder gameplay screens, Zustand stores, Tailwind design system, automated checks, and Vercel SPA deployment configuration.
@@ -51,3 +52,6 @@ The Vercel rewrite returns `index.html` for application routes, so every route w
 ## Deploy to Vercel
 
 Import this repository into Vercel. The committed configuration runs `npm run build`, publishes `dist`, provides SPA routing, adds security headers, and caches hashed Vite assets. No environment variables are required for Phase 1.
+=======
+NT Demo
+>>>>>>> f842aaaf48715c33d54c23373455d8c41386728c
