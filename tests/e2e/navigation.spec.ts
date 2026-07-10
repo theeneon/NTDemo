@@ -84,9 +84,7 @@ test("controls and completes the Phase 4 battle presentation", async ({ page }) 
   await expect(page.getByText("Encounter resolved")).toBeVisible();
 
   await page.getByRole("button", { name: "Replay battle" }).click();
-  await expect(
-    page.getByRole("button", { name: "Skip", exact: true }),
-  ).toBeVisible();
+  await expect(page.getByRole("button", { name: "Skip", exact: true })).toBeVisible();
 });
 
 test("honors reduced-motion battle playback", async ({ page }) => {
