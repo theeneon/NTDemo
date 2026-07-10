@@ -11,6 +11,17 @@ test("navigates the Phase 1 shell", async ({ page }) => {
 });
 
 test("supports direct-link refresh and phone width", async ({ page }, testInfo) => {
+  const routes = ["roster", "squad", "campaign", "battle", "results", "upgrades", "summon"];
+  for (const route of routes) {
+    await page.goto(`/${route}`);
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= document.documentElement.clientWidth,
+      ),
+      `${route} should not overflow horizontally`,
+    ).toBe(true);
+  }
+
   await page.goto("/campaign");
   await page.reload();
   await expect(page.getByRole("heading", { name: "Follow the moonlit trail." })).toBeVisible();
@@ -19,9 +30,4 @@ test("supports direct-link refresh and phone width", async ({ page }, testInfo) 
     expect(viewport?.width).toBeLessThan(620);
     await expect(page.getByRole("navigation", { name: "Primary mobile navigation" })).toBeVisible();
   }
-  expect(
-    await page.evaluate(
-      () => document.documentElement.scrollWidth <= document.documentElement.clientWidth,
-    ),
-  ).toBe(true);
 });

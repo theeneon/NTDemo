@@ -4,14 +4,56 @@ import { usePlayerStore } from "../../stores/playerStore";
 import { usePresentationStore } from "../../stores/presentationStore";
 import { Icon, type IconName } from "../ui/Icon";
 
-const navigation: { to: string; label: string; icon: IconName; mobile?: boolean }[] = [
-  { to: "/roster", label: "Roster", icon: "roster", mobile: true },
-  { to: "/squad", label: "Squad", icon: "squad", mobile: true },
-  { to: "/campaign", label: "Campaign", icon: "campaign", mobile: true },
-  { to: "/battle", label: "Battle", icon: "battle", mobile: true },
-  { to: "/results", label: "Results", icon: "results" },
-  { to: "/upgrades", label: "Upgrades", icon: "upgrade", mobile: true },
-  { to: "/summon", label: "Summon", icon: "summon" },
+const navigation: {
+  to: string;
+  label: string;
+  mobileLabel?: string;
+  icon: IconName;
+  hotkey: string;
+  mobile?: boolean;
+}[] = [
+  {
+    to: "/roster",
+    label: "Hero Roster",
+    mobileLabel: "Roster",
+    icon: "roster",
+    hotkey: "R",
+    mobile: true,
+  },
+  {
+    to: "/squad",
+    label: "Warband",
+    mobileLabel: "Squad",
+    icon: "squad",
+    hotkey: "S",
+    mobile: true,
+  },
+  {
+    to: "/campaign",
+    label: "World Map",
+    mobileLabel: "Map",
+    icon: "campaign",
+    hotkey: "M",
+    mobile: true,
+  },
+  {
+    to: "/battle",
+    label: "Battlefield",
+    mobileLabel: "Battle",
+    icon: "battle",
+    hotkey: "B",
+    mobile: true,
+  },
+  { to: "/results", label: "Spoils", icon: "results", hotkey: "V" },
+  {
+    to: "/upgrades",
+    label: "Training Hall",
+    mobileLabel: "Train",
+    icon: "upgrade",
+    hotkey: "U",
+    mobile: true,
+  },
+  { to: "/summon", label: "Spirit Gate", icon: "summon", hotkey: "G" },
 ];
 
 function Brand() {
@@ -40,7 +82,7 @@ function NavItems({ onNavigate }: { onNavigate?: () => void }) {
         >
           <Icon name={item.icon} />
           <span>{item.label}</span>
-          <Icon className="nav-chevron" name="chevron" />
+          <kbd>{item.hotkey}</kbd>
         </NavLink>
       ))}
     </nav>
@@ -67,20 +109,18 @@ export function AppShell() {
 
       <aside className="desktop-sidebar">
         <Brand />
-        <div className="sidebar-label">Command deck</div>
+        <div className="sidebar-label">Adventurer's journal</div>
         <NavItems />
         <div className="phase-status">
           <div>
-            <span>Foundation</span>
-            <strong>Phase 1</strong>
+            <span>Active quest</span>
+            <strong>Chapter I</strong>
           </div>
           <div className="phase-track">
             <span />
           </div>
-          <p>
-            Application shell and navigation are active. Gameplay systems arrive in later phases.
-          </p>
-          <a href="/docs/phase-0/README.md">Open Phase 0 baseline</a>
+          <p>Assemble a four-ninja warband and clear the road through Bamboo Pass.</p>
+          <a href="/docs/phase-0/README.md">Open quest design notes</a>
         </div>
       </aside>
 
@@ -98,7 +138,11 @@ export function AppShell() {
             <Brand />
           </div>
           <div className="topbar-context">
-            <span className="live-dot" /> Local profile
+            <span className="live-dot" />
+            <span>
+              <small>Realm</small>
+              <strong>Moonfall Vale</strong>
+            </span>
           </div>
           <div className="resource-list" aria-label="Player resources">
             <span>
@@ -111,16 +155,22 @@ export function AppShell() {
             </span>
           </div>
           <div className="profile-chip" aria-label="Player profile placeholder">
-            <span>LN</span>
+            <span>
+              <b>12</b>
+            </span>
             <div>
               <strong>Leaf Nomad</strong>
-              <small>Demo profile</small>
+              <small>Wanderer · Level 12</small>
             </div>
           </div>
         </header>
 
         <main id="page-content" className="page-content" tabIndex={-1}>
-          <Outlet />
+          <div className="game-viewport">
+            <span className="viewport-rivet viewport-rivet-one" aria-hidden="true" />
+            <span className="viewport-rivet viewport-rivet-two" aria-hidden="true" />
+            <Outlet />
+          </div>
         </main>
 
         <nav className="mobile-bottom-nav" aria-label="Primary mobile navigation">
@@ -133,7 +183,7 @@ export function AppShell() {
                 className={({ isActive }) => (isActive ? "active" : "")}
               >
                 <Icon name={item.icon} />
-                <span>{item.label}</span>
+                <span>{item.mobileLabel ?? item.label}</span>
               </NavLink>
             ))}
         </nav>
