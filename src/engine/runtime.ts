@@ -39,8 +39,9 @@ export function createRuntimeUnits(
       >((total, equipmentId) => {
         const item = equipment.get(equipmentId);
         if (!item) throw new Error(`Unknown equipment '${equipmentId}'`);
+        const itemLevel = Math.max(1, participant.equipmentLevels?.[equipmentId] ?? 1);
         for (const stat of ["maxHealth", "attack", "defense", "speed"] as const) {
-          total[stat] = (total[stat] ?? 0) + (item.statModifiers[stat] ?? 0);
+          total[stat] = (total[stat] ?? 0) + (item.statModifiers[stat] ?? 0) * itemLevel;
         }
         return total;
       }, {});

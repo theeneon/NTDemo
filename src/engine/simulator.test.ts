@@ -276,4 +276,42 @@ describe("deterministic combat simulation", () => {
     expect(result.finalUnits.every((unit) => Array.isArray(unit.statuses))).toBe(true);
     expect(demoContent.ninjas[0]?.baseStats.maxHealth).toBe(780);
   });
+
+  it("scales equipped stat modifiers with persistent equipment levels", () => {
+    const levelOne = simulateBattle(
+      input({
+        maximumTurns: 1,
+        playerTeam: [
+          {
+            ninjaId: "ninja.reed",
+            level: 3,
+            slot: 0,
+            equipmentIds: ["equipment.scout-wraps"],
+            equipmentLevels: { "equipment.scout-wraps": 1 },
+          },
+        ],
+      }),
+    );
+    const levelTwo = simulateBattle(
+      input({
+        maximumTurns: 1,
+        playerTeam: [
+          {
+            ninjaId: "ninja.reed",
+            level: 3,
+            slot: 0,
+            equipmentIds: ["equipment.scout-wraps"],
+            equipmentLevels: { "equipment.scout-wraps": 2 },
+          },
+        ],
+      }),
+    );
+
+    expect(levelTwo.finalUnits[0]!.baseStats.defense).toBe(
+      levelOne.finalUnits[0]!.baseStats.defense + 4,
+    );
+    expect(levelTwo.finalUnits[0]!.baseStats.speed).toBe(
+      levelOne.finalUnits[0]!.baseStats.speed + 1,
+    );
+  });
 });

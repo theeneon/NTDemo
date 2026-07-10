@@ -55,7 +55,7 @@ describe("application routes", () => {
         <App />
       </MemoryRouter>,
     );
-    expect(screen.getByRole("heading", { name: "Bamboo Pass" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Underground Shrine" })).toBeInTheDocument();
     const battlefield = screen.getByRole("region", {
       name: "Animated four versus four battlefield",
     });

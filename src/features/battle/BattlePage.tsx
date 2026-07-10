@@ -1,27 +1,36 @@
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { demoContent } from "../../content";
 import type { BattleEvent, BattleUnitId, FormationSlot, NinjaId } from "../../domain/models";
 import { formatBattleLog, simulateBattle } from "../../engine";
+import { FirstRunGuide } from "../../shared/ui/FirstRunGuide";
 import { Icon } from "../../shared/ui/Icon";
-import { initialSquadIds, usePlayerStore } from "../../stores/playerStore";
+import { demoDefaultSquadIds, ninjaIdFromSlug, usePlayerStore } from "../../stores/playerStore";
 import { BattleEffectsLayer } from "./BattleEffectsLayer";
 import { BattleUnitCard } from "./BattleUnitCard";
 import { useBattlePlayback } from "./useBattlePlayback";
 
-const encounterId = "encounter.bamboo-pass" as const;
-const battleSeed = "phase-4-bamboo-pass";
-
 export function BattlePage() {
   const navigate = useNavigate();
   const selectedSquadIds = usePlayerStore((state) => state.squadIds);
-  const squadIds = selectedSquadIds.length === 4 ? selectedSquadIds : initialSquadIds;
+  const activeBattle = usePlayerStore((state) => state.activeBattle);
+  const ninjaProgress = usePlayerStore((state) => state.ninjaProgress);
+  const equipmentLevels = usePlayerStore((state) => state.equipmentLevels);
+  const completeBattle = usePlayerStore((state) => state.completeBattle);
+  const squadIds =
+    activeBattle?.squadIds ??
+    (selectedSquadIds.length === 4 ? selectedSquadIds : demoDefaultSquadIds);
+  const encounterId = activeBattle?.encounterId ?? "encounter.underground-shrine";
+  const battleSeed = activeBattle?.seed ?? "phase-5-dungeon-preview";
+  const encounter = demoContent.encounters.find(({ id }) => id === encounterId)!;
   const squadKey = squadIds.join("|");
   const result = useMemo(() => {
     const playerTeam = squadKey.split("|").map((slug, slot) => ({
-      ninjaId: `ninja.${slug}` as NinjaId,
-      level: 3,
+      ninjaId: ninjaIdFromSlug(slug) as NinjaId,
+      level: ninjaProgress[slug]?.level ?? 1,
       slot: slot as FormationSlot,
+      equipmentIds: Object.values(ninjaProgress[slug]?.equipped ?? {}),
+      equipmentLevels,
     }));
     return simulateBattle({
       content: demoContent,
@@ -29,7 +38,7 @@ export function BattlePage() {
       playerTeam,
       seed: battleSeed,
     });
-  }, [squadKey]);
+  }, [battleSeed, encounterId, equipmentLevels, ninjaProgress, squadKey]);
   const playback = useBattlePlayback(result);
   const [isLogOpen, setLogOpen] = useState(false);
   const [battlefieldElement, setBattlefieldElement] = useState<HTMLElement | null>(null);
@@ -64,12 +73,18 @@ export function BattlePage() {
     ? result.finalUnits.find(({ id }) => id === playback.presentation.activeUnitId)?.name
     : undefined;
 
+  useEffect(() => {
+    if (playback.presentation.completed && activeBattle && !activeBattle.completed) {
+      completeBattle(result);
+    }
+  }, [activeBattle, completeBattle, playback.presentation.completed, result]);
+
   return (
     <div className="battle-page battle-presentation-page">
       <header className="battle-header">
         <div>
-          <p className="eyebrow">Campaign · Encounter 02</p>
-          <h1>Bamboo Pass</h1>
+          <p className="eyebrow">{encounter.mode} · Repeatable expedition</p>
+          <h1>{encounter.name}</h1>
         </div>
         <div className="battle-status" aria-label="Battle progress">
           <span>Turn {playback.presentation.turn || "—"}</span>
@@ -118,6 +133,8 @@ export function BattlePage() {
         </div>
       </header>
 
+      <FirstRunGuide />
+
       <section className="turn-order" aria-label="Upcoming turn order">
         <span>Next</span>
         {upcomingTurns.map((event, index) => {
@@ -144,7 +161,7 @@ export function BattlePage() {
         </div>
         <div className="battlefield-copy" aria-live="polite">
           <span>
-            Eastern grove · Event {playback.cursor} of {result.events.length}
+            Underground vault · Event {playback.cursor} of {result.events.length}
           </span>
           <strong>{activeName ? `${activeName} · ${currentMessage}` : currentMessage}</strong>
           <small>
@@ -175,10 +192,10 @@ export function BattlePage() {
 
         <div
           className="battle-formation battle-formation-enemy"
-          aria-label="Bamboo Pass raider formation"
+          aria-label={`${encounter.name} enemy formation`}
         >
           <div className="team-label">
-            <span>Bamboo Raiders</span>
+            <span>{encounter.name}</span>
             <strong>{enemyUnits.filter(({ defeated }) => !defeated).length} standing</strong>
           </div>
           {enemyUnits.map((unit) => (
@@ -231,7 +248,7 @@ export function BattlePage() {
           </span>
           <p>
             <strong>{currentMessage}</strong>
-            <span>{formattedLog.at(-1) ?? "Formations enter Bamboo Pass."}</span>
+            <span>{formattedLog.at(-1) ?? `Formations enter ${encounter.name}.`}</span>
           </p>
         </div>
         <button type="button" aria-expanded={isLogOpen} onClick={() => setLogOpen(!isLogOpen)}>

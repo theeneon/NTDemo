@@ -6,6 +6,9 @@ test("navigates the Phase 1 shell", async ({ page }) => {
   await page.getByRole("link", { name: /Build squad/ }).click();
   await expect(page).toHaveURL(/\/squad$/);
   await expect(page.getByRole("heading", { name: "Build a balanced squad." })).toBeVisible();
+  for (const ninja of ["Reed", "Ember", "Mist", "Kite"]) {
+    await page.getByRole("button", { name: `Add ${ninja}` }).click();
+  }
   await page.getByRole("link", { name: /Choose mission/ }).click();
   await expect(page).toHaveURL(/\/campaign$/);
 });
@@ -34,7 +37,7 @@ test("supports direct-link refresh and phone width", async ({ page }, testInfo) 
 
   await page.goto("/campaign");
   await page.reload();
-  await expect(page.getByRole("heading", { name: "Follow the moonlit trail." })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Choose the next expedition." })).toBeVisible();
   const viewport = page.viewportSize();
   if (testInfo.project.name.includes("mobile")) {
     expect(viewport?.width).toBeLessThan(620);
@@ -60,7 +63,7 @@ test("replays a seeded combat simulation in the Combat Forge", async ({ page }) 
 
 test("controls and completes the Phase 4 battle presentation", async ({ page }) => {
   await page.goto("/battle");
-  await expect(page.getByRole("heading", { name: "Bamboo Pass" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Underground Shrine" })).toBeVisible();
   await expect(
     page.getByRole("region", { name: "Animated four versus four battlefield" }),
   ).toBeVisible();
@@ -76,12 +79,14 @@ test("controls and completes the Phase 4 battle presentation", async ({ page }) 
     "aria-pressed",
     "true",
   );
-  await page.getByRole("button", { name: "Skip" }).click();
+  await page.getByRole("button", { name: "Skip", exact: true }).click();
   await expect(page.getByRole("status", { name: "Battle result" })).toBeVisible();
   await expect(page.getByText("Encounter resolved")).toBeVisible();
 
   await page.getByRole("button", { name: "Replay battle" }).click();
-  await expect(page.getByRole("button", { name: "Skip" })).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Skip", exact: true }),
+  ).toBeVisible();
 });
 
 test("honors reduced-motion battle playback", async ({ page }) => {
@@ -91,4 +96,36 @@ test("honors reduced-motion battle playback", async ({ page }) => {
   await expect(page.getByRole("status", { name: "Battle result" })).toBeVisible({
     timeout: 15_000,
   });
+});
+
+test("completes and persists the Phase 5 vertical slice", async ({ page }) => {
+  await page.goto("/squad");
+  await expect(page.getByRole("region", { name: "First expedition guide" })).toBeVisible();
+  for (const ninja of ["Reed", "Ember", "Mist", "Kite"]) {
+    await page.getByRole("button", { name: `Add ${ninja}` }).click();
+  }
+  await page.getByRole("link", { name: "Choose mission" }).click();
+  await expect(page.getByRole("heading", { name: "Choose the next expedition." })).toBeVisible();
+
+  await page.getByRole("link", { name: "Enter dungeon" }).click();
+  await expect(page.getByRole("heading", { name: "Underground Shrine" })).toBeVisible();
+  await page.getByRole("button", { name: "Skip", exact: true }).click();
+  await expect(page.getByRole("status", { name: "Battle result" })).toBeVisible();
+  await page.getByRole("button", { name: "View spoils" }).click();
+
+  await expect(page.getByRole("heading", { name: "Victory at Underground Shrine" })).toBeVisible();
+  await expect(page.getByText(/Level up ready/).first()).toBeVisible();
+  await page.getByRole("link", { name: "Improve squad" }).click();
+  await expect(page.getByRole("heading", { name: "Turn rewards into power." })).toBeVisible();
+  await page.getByRole("button", { name: "Level up · 100 XP" }).click();
+  await expect(page.getByText("Level 4", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Upgrade · 100" }).click();
+  await expect(page.getByText("Scout Wraps · +2")).toBeVisible();
+
+  await page.getByRole("link", { name: "Return to squad" }).click();
+  await page.reload();
+  await expect(page.getByText(/Guard · Lv 4/)).toBeVisible();
+  await page.goto("/results");
+  await page.getByRole("link", { name: "Replay dungeon" }).click();
+  await expect(page.getByText("Lv 4 · guard", { exact: true })).toBeVisible();
 });

@@ -1,18 +1,23 @@
 import { Link } from "react-router-dom";
 import { demoContent } from "../../content";
-import { battleEnemies, encounters, ninjas } from "../../content/demoContent";
+import { encounters } from "../../content/demoContent";
+import { FirstRunGuide } from "../../shared/ui/FirstRunGuide";
 import { Icon } from "../../shared/ui/Icon";
 import { PageHeader } from "../../shared/ui/PageHeader";
-import { usePlayerStore } from "../../stores/playerStore";
+import { calculateNinjaPower, usePlayerStore } from "../../stores/playerStore";
 
 export function CampaignPage() {
   const squadIds = usePlayerStore((state) => state.squadIds);
+  const ninjaProgress = usePlayerStore((state) => state.ninjaProgress);
+  const equipmentLevels = usePlayerStore((state) => state.equipmentLevels);
+  const startBattle = usePlayerStore((state) => state.startBattle);
   const squadPower = squadIds.reduce(
-    (total, id) => total + (ninjas.find((ninja) => ninja.id === id)?.power ?? 0),
+    (total, id) =>
+      total + (ninjaProgress[id] ? calculateNinjaPower(id, ninjaProgress[id], equipmentLevels) : 0),
     0,
   );
   const mission = demoContent.encounters.find(
-    (encounter) => encounter.id === "encounter.bamboo-pass",
+    (encounter) => encounter.id === "encounter.underground-shrine",
   )!;
   const missionReward = demoContent.rewardTables.find(
     (reward) => reward.id === mission.rewardTableId,
@@ -20,15 +25,17 @@ export function CampaignPage() {
   return (
     <div className="page-stack">
       <PageHeader
-        eyebrow="Chapter one · eastern province"
-        title="Follow the moonlit trail."
-        description="Five campaign encounters establish the demo progression arc. The first completed node and next available mission are represented in this foundation."
+        eyebrow="Expedition board · repeatable dungeon"
+        title="Choose the next expedition."
+        description="The Underground Shrine is the complete vertical-slice dungeon: deploy your saved squad, earn real rewards, improve, and replay."
         action={
           <Link className="secondary-button" to="/squad">
             Edit squad
           </Link>
         }
       />
+
+      <FirstRunGuide />
 
       <div className="campaign-layout">
         <section className="campaign-map" aria-label="Campaign encounter map">
@@ -71,19 +78,22 @@ export function CampaignPage() {
         </section>
 
         <aside className="mission-panel">
-          <p className="eyebrow">Next mission · 02</p>
-          <h2>Bamboo Pass</h2>
+          <p className="eyebrow">Repeatable dungeon · vertical slice</p>
+          <h2>Underground Shrine</h2>
           <p>
-            Raiders have blocked the eastern trade road. Break their formation before the scout
-            escapes.
+            A raider cell has occupied the shrine beneath Moonfall Vale. Clear the chamber and
+            recover its equipment cache.
           </p>
           <div className="enemy-preview">
-            {battleEnemies.map((enemy, index) => (
-              <span key={enemy.name}>
-                <i>{enemy.glyph}</i>
-                <small>Lv {mission.enemyTeam[index]?.level}</small>
-              </span>
-            ))}
+            {mission.enemyTeam.map((unit) => {
+              const enemy = demoContent.ninjas.find(({ id }) => id === unit.ninjaId)!;
+              return (
+                <span key={`${unit.ninjaId}-${unit.slot}`}>
+                  <i>{enemy.name.slice(0, 1)}</i>
+                  <small>Lv {unit.level}</small>
+                </span>
+              );
+            })}
           </div>
           <dl className="mission-facts">
             <div>
@@ -103,17 +113,24 @@ export function CampaignPage() {
               </dd>
             </div>
           </dl>
-          <Link className="primary-button full-button" to="/battle">
-            Enter battle <Icon name="arrow" />
+          <Link
+            className={`primary-button full-button ${squadIds.length !== 4 ? "button-disabled" : ""}`}
+            aria-disabled={squadIds.length !== 4}
+            to={squadIds.length === 4 ? "/battle" : "/squad"}
+            onClick={() => {
+              if (squadIds.length === 4) startBattle(mission.id);
+            }}
+          >
+            {squadIds.length === 4 ? "Enter dungeon" : "Complete squad"} <Icon name="arrow" />
           </Link>
           <div className="dungeon-card">
             <Icon name="shield" />
             <div>
               <span>Repeatable dungeon</span>
               <strong>Underground Shrine</strong>
-              <small>Unlocks after encounter 3</small>
+              <small>Unlocked · rewards apply every victory</small>
             </div>
-            <Icon name="lock" />
+            <Icon name="check" />
           </div>
         </aside>
       </div>

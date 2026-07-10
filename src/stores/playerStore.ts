@@ -1,30 +1,429 @@
 import { create } from "zustand";
+import { createJSONStorage, persist } from "zustand/middleware";
+import { demoContent } from "../content";
+import { ninjas } from "../content/demoContent";
+import type { EncounterId, EquipmentDefinition, EquipmentId, NinjaId } from "../domain/models";
+import type { BattleResult } from "../engine";
 
-type PlayerState = {
+export const PLAYER_SAVE_VERSION = 2;
+export const PLAYER_SAVE_STORAGE_KEY = "ninja-tactics-player-save";
+export const initialSquadIds: string[] = [];
+export const demoDefaultSquadIds = ["reed", "ember", "mist", "kite"];
+export const NINJA_LEVEL_EXPERIENCE = 100;
+
+type EquipmentSlot = EquipmentDefinition["slot"];
+export type FirstRunStep = "squad" | "battle" | "rewards" | "upgrade" | "complete";
+
+export type NinjaProgress = {
+  level: number;
+  experience: number;
+  equipped: Partial<Record<EquipmentSlot, EquipmentId>>;
+};
+
+export type ActiveBattleRun = {
+  encounterId: EncounterId;
+  seed: string;
+  squadIds: string[];
+  completed: boolean;
+};
+
+export type BattleProgressAward = {
+  ninjaId: string;
+  previousExperience: number;
+  experience: number;
+  level: number;
+  gainedExperience: number;
+};
+
+export type LastBattleReport = {
+  battleId: string;
+  encounterId: EncounterId;
+  outcome: BattleResult["outcome"];
+  turns: number;
+  coins: number;
+  squadExperience: number;
+  drop?: BattleResult["rewards"] extends infer Rewards
+    ? Rewards extends { drop?: infer Drop }
+      ? Drop
+      : never
+    : never;
+  squadIds: string[];
+  progress: BattleProgressAward[];
+};
+
+export type PersistedPlayerState = {
+  saveVersion: number;
   coins: number;
   crystals: number;
   selectedNinjaId: string;
   squadIds: string[];
+  ninjaProgress: Record<string, NinjaProgress>;
+  ownedEquipment: Partial<Record<EquipmentId, number>>;
+  equipmentLevels: Partial<Record<EquipmentId, number>>;
+  completedEncounterIds: EncounterId[];
+  battleSerial: number;
+  activeBattle: ActiveBattleRun | null;
+  lastBattle: LastBattleReport | null;
+  firstRunStep: FirstRunStep;
+};
+
+type PlayerState = PersistedPlayerState & {
   setSelectedNinja: (ninjaId: string) => void;
   addToSquad: (ninjaId: string) => void;
   removeFromSquad: (ninjaId: string) => void;
   clearSquad: () => void;
+  setFirstRunStep: (step: FirstRunStep) => void;
+  startBattle: (encounterId: EncounterId) => boolean;
+  completeBattle: (result: BattleResult) => boolean;
+  levelUpNinja: (ninjaId: string) => boolean;
+  equipItem: (ninjaId: string, equipmentId: EquipmentId) => boolean;
+  upgradeEquipment: (equipmentId: EquipmentId) => boolean;
+  resetSave: () => void;
 };
 
-export const initialSquadIds = ["reed", "ember", "mist", "kite"];
+export function createInitialPlayerState(): PersistedPlayerState {
+  const ninjaProgress = Object.fromEntries(
+    ninjas.map((ninja) => [
+      ninja.id,
+      {
+        level: ninja.level,
+        experience: 80,
+        equipped:
+          ninja.id === "reed"
+            ? ({ armor: "equipment.scout-wraps" } satisfies NinjaProgress["equipped"])
+            : {},
+      },
+    ]),
+  );
+  return {
+    saveVersion: PLAYER_SAVE_VERSION,
+    coins: 1_240,
+    crystals: 0,
+    selectedNinjaId: "reed",
+    squadIds: [...initialSquadIds],
+    ninjaProgress,
+    ownedEquipment: { "equipment.scout-wraps": 1 },
+    equipmentLevels: { "equipment.scout-wraps": 1 },
+    completedEncounterIds: [],
+    battleSerial: 0,
+    activeBattle: null,
+    lastBattle: null,
+    firstRunStep: "squad",
+  };
+}
 
-export const usePlayerStore = create<PlayerState>((set) => ({
-  coins: 1240,
-  crystals: 0,
-  selectedNinjaId: "ember",
-  squadIds: initialSquadIds,
-  setSelectedNinja: (selectedNinjaId) => set({ selectedNinjaId }),
-  addToSquad: (ninjaId) =>
-    set((state) => {
-      if (state.squadIds.includes(ninjaId) || state.squadIds.length >= 4) return state;
-      return { squadIds: [...state.squadIds, ninjaId] };
+const initialState = createInitialPlayerState();
+
+export function migratePlayerSave(persisted: unknown, version: number): PersistedPlayerState {
+  const fallback = createInitialPlayerState();
+  if (!isRecord(persisted)) return fallback;
+  const squadIds = Array.isArray(persisted.squadIds)
+    ? uniqueStrings(persisted.squadIds).filter(isPlayableSlug).slice(0, 4)
+    : fallback.squadIds;
+  const migrated: PersistedPlayerState = {
+    ...fallback,
+    coins: finiteNumber(persisted.coins, fallback.coins),
+    crystals: finiteNumber(persisted.crystals, fallback.crystals),
+    selectedNinjaId:
+      typeof persisted.selectedNinjaId === "string" && isPlayableSlug(persisted.selectedNinjaId)
+        ? persisted.selectedNinjaId
+        : fallback.selectedNinjaId,
+    squadIds,
+  };
+
+  if (version >= PLAYER_SAVE_VERSION) {
+    return {
+      ...migrated,
+      saveVersion: PLAYER_SAVE_VERSION,
+      ninjaProgress: mergeNinjaProgress(persisted.ninjaProgress, fallback.ninjaProgress),
+      ownedEquipment: equipmentNumberRecord(persisted.ownedEquipment, fallback.ownedEquipment),
+      equipmentLevels: equipmentNumberRecord(persisted.equipmentLevels, fallback.equipmentLevels),
+      completedEncounterIds: encounterIds(persisted.completedEncounterIds),
+      battleSerial: finiteNumber(persisted.battleSerial, 0),
+      activeBattle: validActiveBattle(persisted.activeBattle),
+      lastBattle: (persisted.lastBattle as LastBattleReport | null) ?? null,
+      firstRunStep: isFirstRunStep(persisted.firstRunStep) ? persisted.firstRunStep : "squad",
+    };
+  }
+  return migrated;
+}
+
+export const usePlayerStore = create<PlayerState>()(
+  persist(
+    (set, get) => ({
+      ...initialState,
+      setSelectedNinja: (selectedNinjaId) => {
+        if (isPlayableSlug(selectedNinjaId)) set({ selectedNinjaId });
+      },
+      addToSquad: (ninjaId) =>
+        set((state) => {
+          if (
+            !isPlayableSlug(ninjaId) ||
+            state.squadIds.includes(ninjaId) ||
+            state.squadIds.length >= 4
+          ) {
+            return state;
+          }
+          return { squadIds: [...state.squadIds, ninjaId] };
+        }),
+      removeFromSquad: (ninjaId) =>
+        set((state) => ({ squadIds: state.squadIds.filter((id) => id !== ninjaId) })),
+      clearSquad: () => set({ squadIds: [] }),
+      setFirstRunStep: (firstRunStep) => set({ firstRunStep }),
+      startBattle: (encounterId) => {
+        const state = get();
+        if (
+          state.squadIds.length !== 4 ||
+          !demoContent.encounters.some(({ id }) => id === encounterId)
+        ) {
+          return false;
+        }
+        const battleSerial = state.battleSerial + 1;
+        set({
+          battleSerial,
+          activeBattle: {
+            encounterId,
+            seed: `vertical-slice-${encounterId.replace("encounter.", "")}-${battleSerial}`,
+            squadIds: [...state.squadIds],
+            completed: false,
+          },
+          firstRunStep: "battle",
+        });
+        return true;
+      },
+      completeBattle: (result) => {
+        const state = get();
+        const activeBattle = state.activeBattle;
+        if (!activeBattle || state.lastBattle?.battleId === result.battleId) return false;
+        const rewards = result.rewards;
+        const squadExperience = rewards?.squadExperience ?? 0;
+        const coinDrop = rewards?.drop?.kind === "coins" ? rewards.drop.amount : 0;
+        const coins = (rewards?.coins ?? 0) + coinDrop;
+        const ninjaProgress = { ...state.ninjaProgress };
+        const progress = activeBattle.squadIds.map((ninjaId) => {
+          const previous = ninjaProgress[ninjaId] ?? { level: 1, experience: 0, equipped: {} };
+          const next = { ...previous, experience: previous.experience + squadExperience };
+          ninjaProgress[ninjaId] = next;
+          return {
+            ninjaId,
+            previousExperience: previous.experience,
+            experience: next.experience,
+            level: next.level,
+            gainedExperience: squadExperience,
+          };
+        });
+        const ownedEquipment = { ...state.ownedEquipment };
+        const equipmentLevels = { ...state.equipmentLevels };
+        if (rewards?.drop?.kind === "equipment" && rewards.drop.contentId) {
+          ownedEquipment[rewards.drop.contentId] =
+            (ownedEquipment[rewards.drop.contentId] ?? 0) + rewards.drop.amount;
+          equipmentLevels[rewards.drop.contentId] ??= 1;
+        }
+        set({
+          coins: state.coins + coins,
+          ninjaProgress,
+          ownedEquipment,
+          equipmentLevels,
+          completedEncounterIds:
+            result.outcome === "victory"
+              ? [...new Set([...state.completedEncounterIds, activeBattle.encounterId])]
+              : state.completedEncounterIds,
+          activeBattle: { ...activeBattle, completed: true },
+          lastBattle: {
+            battleId: result.battleId,
+            encounterId: activeBattle.encounterId,
+            outcome: result.outcome,
+            turns: result.summary.turns,
+            coins,
+            squadExperience,
+            ...(rewards?.drop ? { drop: rewards.drop } : {}),
+            squadIds: [...activeBattle.squadIds],
+            progress,
+          },
+          firstRunStep: "rewards",
+        });
+        return true;
+      },
+      levelUpNinja: (ninjaId) => {
+        const state = get();
+        const progress = state.ninjaProgress[ninjaId];
+        if (!progress || progress.experience < NINJA_LEVEL_EXPERIENCE) return false;
+        set({
+          ninjaProgress: {
+            ...state.ninjaProgress,
+            [ninjaId]: {
+              ...progress,
+              level: progress.level + 1,
+              experience: progress.experience - NINJA_LEVEL_EXPERIENCE,
+            },
+          },
+          firstRunStep: "complete",
+        });
+        return true;
+      },
+      equipItem: (ninjaId, equipmentId) => {
+        const state = get();
+        const progress = state.ninjaProgress[ninjaId];
+        const equipment = demoContent.equipment.find(({ id }) => id === equipmentId);
+        if (!progress || !equipment || !(state.ownedEquipment[equipmentId] ?? 0)) return false;
+        set({
+          ninjaProgress: {
+            ...state.ninjaProgress,
+            [ninjaId]: {
+              ...progress,
+              equipped: { ...progress.equipped, [equipment.slot]: equipmentId },
+            },
+          },
+        });
+        return true;
+      },
+      upgradeEquipment: (equipmentId) => {
+        const state = get();
+        const equipment = demoContent.equipment.find(({ id }) => id === equipmentId);
+        const currentLevel = state.equipmentLevels[equipmentId] ?? 1;
+        const cost = equipment ? equipment.upgradeCost * currentLevel : Number.POSITIVE_INFINITY;
+        if (!equipment || !(state.ownedEquipment[equipmentId] ?? 0) || state.coins < cost) {
+          return false;
+        }
+        set({
+          coins: state.coins - cost,
+          equipmentLevels: { ...state.equipmentLevels, [equipmentId]: currentLevel + 1 },
+          firstRunStep: "complete",
+        });
+        return true;
+      },
+      resetSave: () => set(createInitialPlayerState()),
     }),
-  removeFromSquad: (ninjaId) =>
-    set((state) => ({ squadIds: state.squadIds.filter((id) => id !== ninjaId) })),
-  clearSquad: () => set({ squadIds: [] }),
-}));
+    {
+      name: PLAYER_SAVE_STORAGE_KEY,
+      version: PLAYER_SAVE_VERSION,
+      storage: createJSONStorage(() => localStorage),
+      migrate: (persisted, version) => migratePlayerSave(persisted, version),
+      partialize: (state): PersistedPlayerState => ({
+        saveVersion: PLAYER_SAVE_VERSION,
+        coins: state.coins,
+        crystals: state.crystals,
+        selectedNinjaId: state.selectedNinjaId,
+        squadIds: state.squadIds,
+        ninjaProgress: state.ninjaProgress,
+        ownedEquipment: state.ownedEquipment,
+        equipmentLevels: state.equipmentLevels,
+        completedEncounterIds: state.completedEncounterIds,
+        battleSerial: state.battleSerial,
+        activeBattle: state.activeBattle,
+        lastBattle: state.lastBattle,
+        firstRunStep: state.firstRunStep,
+      }),
+    },
+  ),
+);
+
+export function calculateNinjaPower(
+  ninjaId: string,
+  progress: NinjaProgress,
+  equipmentLevels: PersistedPlayerState["equipmentLevels"],
+) {
+  const presentation = ninjas.find(({ id }) => id === ninjaId);
+  if (!presentation) return 0;
+  const levelPower = Math.round(presentation.power * (1 + (progress.level - 1) * 0.05));
+  const equipmentPower = Object.values(progress.equipped).reduce((total, equipmentId) => {
+    const equipment = demoContent.equipment.find(({ id }) => id === equipmentId);
+    if (!equipment) return total;
+    const itemLevel = equipmentLevels[equipment.id] ?? 1;
+    const modifiers = equipment.statModifiers;
+    return (
+      total +
+      Math.round(
+        ((modifiers.maxHealth ?? 0) * 0.035 +
+          (modifiers.attack ?? 0) * 0.45 +
+          (modifiers.defense ?? 0) * 0.25 +
+          (modifiers.speed ?? 0) * 0.15) *
+          itemLevel,
+      )
+    );
+  }, 0);
+  return levelPower + equipmentPower;
+}
+
+export function equipmentUpgradeCost(equipmentId: EquipmentId, level: number) {
+  const equipment = demoContent.equipment.find(({ id }) => id === equipmentId);
+  return equipment ? equipment.upgradeCost * level : 0;
+}
+
+function isPlayableSlug(value: string) {
+  return ninjas.some(({ id }) => id === value);
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
+
+function finiteNumber(value: unknown, fallback: number) {
+  return typeof value === "number" && Number.isFinite(value) && value >= 0 ? value : fallback;
+}
+
+function uniqueStrings(values: unknown[]) {
+  return [...new Set(values.filter((value): value is string => typeof value === "string"))];
+}
+
+function mergeNinjaProgress(value: unknown, fallback: Record<string, NinjaProgress>) {
+  if (!isRecord(value)) return fallback;
+  return Object.fromEntries(
+    Object.entries(fallback).map(([ninjaId, initial]) => {
+      const stored = value[ninjaId];
+      return [
+        ninjaId,
+        isRecord(stored)
+          ? {
+              level: Math.max(1, Math.floor(finiteNumber(stored.level, initial.level))),
+              experience: Math.floor(finiteNumber(stored.experience, initial.experience)),
+              equipped: isRecord(stored.equipped)
+                ? (stored.equipped as NinjaProgress["equipped"])
+                : initial.equipped,
+            }
+          : initial,
+      ];
+    }),
+  );
+}
+
+function equipmentNumberRecord(value: unknown, fallback: Partial<Record<EquipmentId, number>>) {
+  if (!isRecord(value)) return fallback;
+  return Object.fromEntries(
+    Object.entries(value)
+      .filter(([id, amount]) => id.startsWith("equipment.") && typeof amount === "number")
+      .map(([id, amount]) => [id, Math.max(0, Math.floor(amount as number))]),
+  ) as Partial<Record<EquipmentId, number>>;
+}
+
+function encounterIds(value: unknown): EncounterId[] {
+  if (!Array.isArray(value)) return [];
+  return value.filter(
+    (id): id is EncounterId =>
+      typeof id === "string" && demoContent.encounters.some((encounter) => encounter.id === id),
+  );
+}
+
+function validActiveBattle(value: unknown): ActiveBattleRun | null {
+  if (!isRecord(value) || typeof value.encounterId !== "string" || typeof value.seed !== "string") {
+    return null;
+  }
+  const squadIds = Array.isArray(value.squadIds)
+    ? uniqueStrings(value.squadIds).filter(isPlayableSlug).slice(0, 4)
+    : [];
+  if (squadIds.length !== 4) return null;
+  return {
+    encounterId: value.encounterId as EncounterId,
+    seed: value.seed,
+    squadIds,
+    completed: Boolean(value.completed),
+  };
+}
+
+function isFirstRunStep(value: unknown): value is FirstRunStep {
+  return ["squad", "battle", "rewards", "upgrade", "complete"].includes(String(value));
+}
+
+export function ninjaIdFromSlug(slug: string): NinjaId {
+  return `ninja.${slug}`;
+}

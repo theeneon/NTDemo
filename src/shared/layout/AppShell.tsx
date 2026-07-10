@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { NavLink, Outlet, useLocation } from "react-router-dom";
 import { usePlayerStore } from "../../stores/playerStore";
 import { usePresentationStore } from "../../stores/presentationStore";
@@ -93,10 +93,12 @@ function NavItems({ onNavigate }: { onNavigate?: () => void }) {
 
 export function AppShell() {
   const { pathname } = useLocation();
+  const [isResetArmed, setResetArmed] = useState(false);
   const coins = usePlayerStore((state) => state.coins);
   const crystals = usePlayerStore((state) => state.crystals);
   const isMenuOpen = usePresentationStore((state) => state.isMenuOpen);
   const setMenuOpen = usePresentationStore((state) => state.setMenuOpen);
+  const resetSave = usePlayerStore((state) => state.resetSave);
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "auto" });
@@ -116,15 +118,29 @@ export function AppShell() {
         <div className="phase-status">
           <div>
             <span>Active quest</span>
-            <strong>Chapter IV</strong>
+            <strong>Chapter V</strong>
           </div>
           <div className="phase-track">
             <span />
           </div>
           <p>
-            Present every combat event with responsive formations, effects, and playback controls.
+            Form a squad, clear the shrine, claim rewards, improve, refresh, and replay stronger.
           </p>
-          <a href="/battle">Enter the battlefield</a>
+          <a href="/squad">Begin expedition</a>
+          <button
+            className={isResetArmed ? "phase-reset phase-reset-armed" : "phase-reset"}
+            type="button"
+            onClick={() => {
+              if (isResetArmed) {
+                resetSave();
+                setResetArmed(false);
+              } else {
+                setResetArmed(true);
+              }
+            }}
+          >
+            {isResetArmed ? "Confirm reset" : "Reset saved progress"}
+          </button>
         </div>
       </aside>
 

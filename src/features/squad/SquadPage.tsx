@@ -1,9 +1,10 @@
 import { Link } from "react-router-dom";
 import { ninjas } from "../../content/demoContent";
+import { FirstRunGuide } from "../../shared/ui/FirstRunGuide";
 import { Icon } from "../../shared/ui/Icon";
 import { NinjaAvatar } from "../../shared/ui/NinjaAvatar";
 import { PageHeader } from "../../shared/ui/PageHeader";
-import { usePlayerStore } from "../../stores/playerStore";
+import { calculateNinjaPower, usePlayerStore } from "../../stores/playerStore";
 
 const slotNames = ["Front left", "Front right", "Back left", "Back right"];
 
@@ -12,26 +13,38 @@ export function SquadPage() {
   const addToSquad = usePlayerStore((state) => state.addToSquad);
   const removeFromSquad = usePlayerStore((state) => state.removeFromSquad);
   const clearSquad = usePlayerStore((state) => state.clearSquad);
+  const ninjaProgress = usePlayerStore((state) => state.ninjaProgress);
+  const equipmentLevels = usePlayerStore((state) => state.equipmentLevels);
+  const setFirstRunStep = usePlayerStore((state) => state.setFirstRunStep);
   const squad = squadIds.map((id) => ninjas.find((ninja) => ninja.id === id)).filter(Boolean);
   const available = ninjas.filter((ninja) => !squadIds.includes(ninja.id));
-  const power = squad.reduce((sum, ninja) => sum + (ninja?.power ?? 0), 0);
+  const power = squad.reduce(
+    (sum, ninja) =>
+      sum + (ninja ? calculateNinjaPower(ninja.id, ninjaProgress[ninja.id]!, equipmentLevels) : 0),
+    0,
+  );
 
   return (
     <div className="page-stack">
       <PageHeader
         eyebrow="Formation · four unit limit"
         title="Build a balanced squad."
-        description="Front slots establish the line; back slots protect support and control. This Phase 1 shell keeps selection state in Zustand."
+        description="Choose four owned ninjas for the expedition. Formation, levels, and equipment persist across refreshes and replays."
         action={
           <Link
             className={`primary-button ${squad.length !== 4 ? "button-disabled" : ""}`}
             aria-disabled={squad.length !== 4}
             to={squad.length === 4 ? "/campaign" : "#"}
+            onClick={() => {
+              if (squad.length === 4) setFirstRunStep("battle");
+            }}
           >
             Choose mission <Icon name="arrow" />
           </Link>
         }
       />
+
+      <FirstRunGuide />
 
       <div className="squad-layout">
         <section className="formation-panel">
@@ -66,7 +79,9 @@ export function SquadPage() {
                       <NinjaAvatar ninja={ninja} size="lg" />
                       <strong>{ninja.name}</strong>
                       <small>
-                        {ninja.role} · {ninja.power} power
+                        {ninja.role} · Lv {ninjaProgress[ninja.id]?.level ?? 1} ·{" "}
+                        {calculateNinjaPower(ninja.id, ninjaProgress[ninja.id]!, equipmentLevels)}{" "}
+                        power
                       </small>
                     </>
                   ) : (
@@ -113,7 +128,8 @@ export function SquadPage() {
                 <div>
                   <strong>{ninja.name}</strong>
                   <small>
-                    {ninja.role} · {ninja.power} power
+                    {ninja.role} · Lv {ninjaProgress[ninja.id]?.level ?? 1} ·{" "}
+                    {calculateNinjaPower(ninja.id, ninjaProgress[ninja.id]!, equipmentLevels)} power
                   </small>
                 </div>
                 <button

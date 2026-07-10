@@ -19,6 +19,7 @@ export type BattleParticipant = Readonly<{
   level: number;
   slot: FormationSlot;
   equipmentIds?: readonly EquipmentId[];
+  equipmentLevels?: Readonly<Partial<Record<EquipmentId, number>>>;
 }>;
 
 export type BattleInput = Readonly<{
