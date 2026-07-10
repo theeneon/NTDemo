@@ -30,6 +30,9 @@ export type TargetSelector =
   | "allAllies"
   | "allAlliesIncludingSelf";
 
+export type PassiveTriggerEvent =
+  "battleStarted" | "turnStarted" | "afterDamageTaken" | "allyDefeated";
+
 export type EffectDefinition =
   | Readonly<{
       kind: "damage";
@@ -66,6 +69,10 @@ export type SkillDefinition = Readonly<{
   aiPriority: number;
   iconAssetId: AssetId;
   effects: readonly EffectDefinition[];
+  passiveTrigger?: Readonly<{
+    event: PassiveTriggerEvent;
+    oncePerBattle: boolean;
+  }>;
 }>;
 
 export type StatusDefinition = Readonly<{
@@ -189,8 +196,25 @@ type BattleEventBase = Readonly<{
 }>;
 
 export type BattleEvent =
-  | (BattleEventBase & Readonly<{ type: "battleStarted"; seed: string }>)
-  | (BattleEventBase & Readonly<{ type: "turnStarted"; unitId: BattleUnitId }>)
+  | (BattleEventBase &
+      Readonly<{
+        type: "battleStarted";
+        seed: string;
+        playerUnitIds: readonly BattleUnitId[];
+        enemyUnitIds: readonly BattleUnitId[];
+      }>)
+  | (BattleEventBase &
+      Readonly<{ type: "turnStarted"; unitId: BattleUnitId; turn: number; timeline: number }>)
+  | (BattleEventBase &
+      Readonly<{ type: "turnEnded"; unitId: BattleUnitId; turn: number; timeline: number }>)
+  | (BattleEventBase & Readonly<{ type: "turnSkipped"; unitId: BattleUnitId; reason: "stun" }>)
+  | (BattleEventBase &
+      Readonly<{
+        type: "movementIntent";
+        unitId: BattleUnitId;
+        targetUnitIds: readonly BattleUnitId[];
+        intent: "approach" | "retreat" | "projectile" | "stationary";
+      }>)
   | (BattleEventBase &
       Readonly<{
         type: "skillUsed";
@@ -205,6 +229,18 @@ export type BattleEvent =
         targetUnitId: BattleUnitId;
         amount: number;
         remainingHealth: number;
+        calculatedAmount: number;
+        effectIndex: number;
+      }>)
+  | (BattleEventBase &
+      Readonly<{
+        type: "healingApplied";
+        sourceUnitId: BattleUnitId;
+        targetUnitId: BattleUnitId;
+        amount: number;
+        calculatedAmount: number;
+        remainingHealth: number;
+        effectIndex: number;
       }>)
   | (BattleEventBase &
       Readonly<{
@@ -213,11 +249,58 @@ export type BattleEvent =
         targetUnitId: BattleUnitId;
         statusId: StatusId;
         duration: number;
+        magnitude: number;
+      }>)
+  | (BattleEventBase &
+      Readonly<{
+        type: "statusRefreshed";
+        sourceUnitId: BattleUnitId;
+        targetUnitId: BattleUnitId;
+        statusId: StatusId;
+        duration: number;
+        magnitude: number;
+      }>)
+  | (BattleEventBase &
+      Readonly<{
+        type: "statusTicked";
+        sourceUnitId: BattleUnitId;
+        targetUnitId: BattleUnitId;
+        statusId: StatusId;
+        amount: number;
+        tickKind: "damage" | "healing";
+      }>)
+  | (BattleEventBase &
+      Readonly<{ type: "statusExpired"; targetUnitId: BattleUnitId; statusId: StatusId }>)
+  | (BattleEventBase &
+      Readonly<{
+        type: "passiveTriggered";
+        unitId: BattleUnitId;
+        skillId: SkillId;
+        trigger: PassiveTriggerEvent;
+        sourceEventSequence: number;
+      }>)
+  | (BattleEventBase &
+      Readonly<{
+        type: "cooldownChanged";
+        unitId: BattleUnitId;
+        skillId: SkillId;
+        remaining: number;
       }>)
   | (BattleEventBase & Readonly<{ type: "unitDefeated"; unitId: BattleUnitId }>)
+  | (BattleEventBase &
+      Readonly<{
+        type: "rewardsCalculated";
+        coins: number;
+        squadExperience: number;
+        drop?: Readonly<{ kind: "equipment" | "coins"; contentId?: EquipmentId; amount: number }>;
+      }>)
+  | (BattleEventBase & Readonly<{ type: "turnLimitReached"; maximumTurns: number }>)
+  | (BattleEventBase & Readonly<{ type: "triggerLimitReached"; maximumTriggers: number }>)
+  | (BattleEventBase & Readonly<{ type: "invalidState"; message: string }>)
   | (BattleEventBase &
       Readonly<{
         type: "battleEnded";
         outcome: "victory" | "defeat" | "draw";
         turns: number;
+        reason: "elimination" | "turnLimit" | "invalidState";
       }>);

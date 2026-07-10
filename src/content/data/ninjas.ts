@@ -199,10 +199,16 @@ export const ninjas: NinjaDefinition[] = seeds.map((seed) => ({
     defense: seed.defense,
     speed: seed.speed,
   },
-  skillIds:
-    seed.activeSkillId === "skill.basic-strike"
-      ? ["skill.basic-strike"]
-      : [seed.activeSkillId, "skill.basic-strike"],
+  skillIds: [
+    ...(seed.activeSkillId === "skill.basic-strike"
+      ? (["skill.basic-strike"] as const)
+      : ([seed.activeSkillId, "skill.basic-strike"] as const)),
+    ...(seed.slug === "reed"
+      ? (["skill.guardian-oath"] as const)
+      : seed.slug === "echo"
+        ? (["skill.last-echo"] as const)
+        : []),
+  ],
   portraitAssetId: `asset.portrait-${seed.slug}`,
   spriteAssetId: `asset.sprite-${seed.slug}`,
   tags: seed.tags,

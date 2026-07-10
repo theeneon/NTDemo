@@ -28,6 +28,8 @@ const skillIcons = [
   "brutal-crush",
   "hamstring",
   "weakening-hex",
+  "guardian-oath",
+  "last-echo",
 ] as const;
 
 const statusIcons = [
@@ -38,6 +40,7 @@ const statusIcons = [
   "speed-down",
   "regeneration",
   "stun",
+  "bleed",
 ] as const;
 
 export const assets: AssetDefinition[] = [

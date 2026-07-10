@@ -37,4 +37,15 @@ describe("application routes", () => {
     expect(screen.getByText("Validation passed")).toBeInTheDocument();
     expect(screen.getByText(/Duplicate ID 'ninja.ember'/)).toBeInTheDocument();
   });
+
+  it("renders the Phase 3 combat forge from a completed simulation", () => {
+    render(
+      <MemoryRouter initialEntries={["/combat-lab"]}>
+        <App />
+      </MemoryRouter>,
+    );
+    expect(screen.getByRole("heading", { name: "The Combat Forge" })).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "Final battle state" })).toBeInTheDocument();
+    expect(screen.getByRole("list", { name: "Battle event log" })).toBeInTheDocument();
+  });
 });

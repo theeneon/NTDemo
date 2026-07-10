@@ -71,4 +71,14 @@ export const statuses: StatusDefinition[] = [
     stacking: "keepLonger",
     iconAssetId: "asset.icon-status-stun",
   },
+  {
+    id: "status.bleed",
+    name: "Bleed",
+    description: "Deals source-scaled damage at the affected unit's turn start.",
+    category: "damageOverTime",
+    polarity: "debuff",
+    timing: "turnStart",
+    stacking: "refreshStrongest",
+    iconAssetId: "asset.icon-status-bleed",
+  },
 ];

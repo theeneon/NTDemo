@@ -55,6 +55,7 @@ const navigation: {
   },
   { to: "/summon", label: "Spirit Gate", icon: "summon", hotkey: "G" },
   { to: "/content-lab", label: "Content Codex", icon: "spark", hotkey: "C" },
+  { to: "/combat-lab", label: "Combat Forge", icon: "battle", hotkey: "F" },
 ];
 
 function Brand() {
@@ -115,13 +116,13 @@ export function AppShell() {
         <div className="phase-status">
           <div>
             <span>Active quest</span>
-            <strong>Chapter II</strong>
+            <strong>Chapter III</strong>
           </div>
           <div className="phase-track">
             <span />
           </div>
-          <p>Validate the realm's combatants, skills, rewards, and encounter records.</p>
-          <a href="/content-lab">Open content codex</a>
+          <p>Resolve seeded battles into deterministic, replayable combat events.</p>
+          <a href="/combat-lab">Open combat forge</a>
         </div>
       </aside>
 

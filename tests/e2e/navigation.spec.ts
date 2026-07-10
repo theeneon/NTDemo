@@ -20,6 +20,7 @@ test("supports direct-link refresh and phone width", async ({ page }, testInfo) 
     "upgrades",
     "summon",
     "content-lab",
+    "combat-lab",
   ];
   for (const route of routes) {
     await page.goto(`/${route}`);
@@ -39,4 +40,20 @@ test("supports direct-link refresh and phone width", async ({ page }, testInfo) 
     expect(viewport?.width).toBeLessThan(620);
     await expect(page.getByRole("navigation", { name: "Primary mobile navigation" })).toBeVisible();
   }
+});
+
+test("replays a seeded combat simulation in the Combat Forge", async ({ page }) => {
+  await page.goto("/combat-lab");
+  await expect(page.getByRole("heading", { name: "The Combat Forge" })).toBeVisible();
+  await expect(page.getByText("battle:encounter.bamboo-pass:moonfall-phase-3")).toBeVisible();
+  const firstLog = await page.getByRole("list", { name: "Battle event log" }).textContent();
+
+  await page.getByLabel("Battle seed").fill("browser-replay-seed");
+  await page.getByRole("button", { name: "Run seeded battle" }).click();
+  await expect(page.getByText("battle:encounter.bamboo-pass:browser-replay-seed")).toBeVisible();
+  const seededLog = await page.getByRole("list", { name: "Battle event log" }).textContent();
+  expect(seededLog).not.toBe(firstLog);
+
+  await page.getByRole("button", { name: "Run seeded battle" }).click();
+  await expect(page.getByRole("list", { name: "Battle event log" })).toHaveText(seededLog ?? "");
 });

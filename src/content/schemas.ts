@@ -69,16 +69,39 @@ export const effectSchema = z.discriminatedUnion("kind", [
   cleanseEffectSchema,
 ]);
 
-export const skillSchema = z.object({
-  id: skillIdSchema,
-  name: z.string().trim().min(1).max(80),
-  description: z.string().trim().min(1).max(300),
-  kind: z.enum(["basic", "active", "passive"]),
-  cooldown: z.number().int().min(0).max(20),
-  aiPriority: z.number().int().min(0).max(100),
-  iconAssetId: assetIdSchema,
-  effects: z.array(effectSchema).min(1).max(12),
-});
+export const skillSchema = z
+  .object({
+    id: skillIdSchema,
+    name: z.string().trim().min(1).max(80),
+    description: z.string().trim().min(1).max(300),
+    kind: z.enum(["basic", "active", "passive"]),
+    cooldown: z.number().int().min(0).max(20),
+    aiPriority: z.number().int().min(0).max(100),
+    iconAssetId: assetIdSchema,
+    effects: z.array(effectSchema).min(1).max(12),
+    passiveTrigger: z
+      .object({
+        event: z.enum(["battleStarted", "turnStarted", "afterDamageTaken", "allyDefeated"]),
+        oncePerBattle: z.boolean(),
+      })
+      .optional(),
+  })
+  .superRefine((skill, context) => {
+    if (skill.kind === "passive" && !skill.passiveTrigger) {
+      context.addIssue({
+        code: "custom",
+        path: ["passiveTrigger"],
+        message: "Passive skills require a trigger",
+      });
+    }
+    if (skill.kind !== "passive" && skill.passiveTrigger) {
+      context.addIssue({
+        code: "custom",
+        path: ["passiveTrigger"],
+        message: "Only passive skills may declare a trigger",
+      });
+    }
+  });
 
 export const statusSchema = z.object({
   id: statusIdSchema,
