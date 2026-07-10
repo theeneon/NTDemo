@@ -230,6 +230,21 @@ export function AppShell() {
           <a className="drawer-doc-link" href="/docs/phase-0/README.md">
             Phase 0 planning baseline <Icon name="arrow" />
           </a>
+          <button
+            className={isResetArmed ? "drawer-reset-save drawer-reset-armed" : "drawer-reset-save"}
+            type="button"
+            onClick={() => {
+              if (isResetArmed) {
+                resetSave();
+                setResetArmed(false);
+                setMenuOpen(false);
+              } else {
+                setResetArmed(true);
+              }
+            }}
+          >
+            {isResetArmed ? "Confirm reset saved progress" : "Reset saved progress"}
+          </button>
         </aside>
       </div>
     </div>

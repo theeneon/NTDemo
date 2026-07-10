@@ -105,7 +105,8 @@ test("completes and persists the Phase 5 vertical slice", async ({ page }) => {
   await page.getByRole("link", { name: "Choose mission" }).click();
   await expect(page.getByRole("heading", { name: "Choose the next expedition." })).toBeVisible();
 
-  await page.getByRole("link", { name: "Enter dungeon" }).click();
+  await page.getByRole("button", { name: /Repeatable dungeon Underground Shrine/ }).click();
+  await page.getByRole("link", { name: "Start mission" }).click();
   await expect(page.getByRole("heading", { name: "Underground Shrine" })).toBeVisible();
   await page.getByRole("button", { name: "Skip", exact: true }).click();
   await expect(page.getByRole("status", { name: "Battle result" })).toBeVisible();
@@ -126,4 +127,27 @@ test("completes and persists the Phase 5 vertical slice", async ({ page }) => {
   await page.goto("/results");
   await page.getByRole("link", { name: "Replay dungeon" }).click();
   await expect(page.getByText("Lv 4 · guard", { exact: true })).toBeVisible();
+});
+
+test("unlocks the next campaign mission and completes the free summon", async ({ page }) => {
+  await page.goto("/squad");
+  for (const ninja of ["Reed", "Ember", "Mist", "Kite"]) {
+    await page.getByRole("button", { name: `Add ${ninja}` }).click();
+  }
+  await page.getByRole("link", { name: "Choose mission" }).click();
+  await page.getByRole("button", { name: /Border Watch/ }).click();
+  await page.getByRole("link", { name: "Start mission" }).click();
+  await page.getByRole("button", { name: "Skip", exact: true }).click();
+  await page.getByRole("button", { name: "View spoils" }).click();
+  await expect(page.getByRole("heading", { name: "Victory at Border Watch" })).toBeVisible();
+  await page.getByRole("link", { name: "Next mission unlocked" }).click();
+  await expect(page.getByRole("button", { name: /Bamboo Pass/ })).toBeEnabled();
+
+  await page.getByRole("link", { name: /Free summon ready/ }).click();
+  await page.getByRole("button", { name: "Use free summon" }).click();
+  await expect(page.getByRole("heading", { name: /answered the call/ })).toBeVisible();
+  const result = await page.getByRole("heading", { name: /answered the call/ }).textContent();
+  await page.reload();
+  await expect(page.getByRole("heading", { name: result ?? "" })).toBeVisible();
+  await expect(page.getByText("Summon complete · saved")).toBeVisible();
 });

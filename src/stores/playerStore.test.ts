@@ -6,6 +6,7 @@ import {
   calculateNinjaPower,
   createInitialPlayerState,
   demoDefaultSquadIds,
+  isEncounterUnlocked,
   migratePlayerSave,
   ninjaIdFromSlug,
   usePlayerStore,
@@ -33,11 +34,12 @@ describe("persisted player progression", () => {
       0,
     );
 
-    expect(migrated.saveVersion).toBe(2);
+    expect(migrated.saveVersion).toBe(3);
     expect(migrated.coins).toBe(777);
     expect(migrated.squadIds).toEqual(["reed", "ember"]);
     expect(migrated.ninjaProgress.reed?.level).toBe(3);
     expect(migrated.ownedEquipment["equipment.scout-wraps"]).toBe(1);
+    expect(migrated.summonAvailable).toBe(true);
   });
 
   it("applies dungeon rewards and experience exactly once", () => {
@@ -104,5 +106,56 @@ describe("persisted player progression", () => {
     expect(
       calculateNinjaPower("reed", upgraded.ninjaProgress.reed!, upgraded.equipmentLevels),
     ).toBeGreaterThan(beforeEquipment);
+  });
+
+  it("unlocks campaign missions in order after a victory", () => {
+    const store = usePlayerStore.getState();
+    demoDefaultSquadIds.forEach((id) => store.addToSquad(id));
+
+    expect(isEncounterUnlocked("encounter.border-watch", [])).toBe(true);
+    expect(isEncounterUnlocked("encounter.bamboo-pass", [])).toBe(false);
+    expect(store.startBattle("encounter.bamboo-pass")).toBe(false);
+    expect(store.startBattle("encounter.border-watch")).toBe(true);
+
+    const active = usePlayerStore.getState().activeBattle!;
+    const current = usePlayerStore.getState();
+    const result = simulateBattle({
+      content: demoContent,
+      encounterId: active.encounterId,
+      seed: active.seed,
+      playerTeam: active.squadIds.map((slug, slot) => ({
+        ninjaId: ninjaIdFromSlug(slug),
+        level: current.ninjaProgress[slug]!.level,
+        slot: slot as 0 | 1 | 2 | 3,
+        equipmentIds: Object.values(current.ninjaProgress[slug]!.equipped),
+        equipmentLevels: current.equipmentLevels,
+      })),
+    });
+
+    expect(result.outcome).toBe("victory");
+    expect(store.completeBattle(result)).toBe(true);
+    expect(usePlayerStore.getState().completedEncounterIds).toContain("encounter.border-watch");
+    expect(
+      isEncounterUnlocked("encounter.bamboo-pass", usePlayerStore.getState().completedEncounterIds),
+    ).toBe(true);
+  });
+
+  it("persists one deterministic free summon and restores it on reset", () => {
+    const store = usePlayerStore.getState();
+    const result = store.performFreeSummon();
+
+    expect(result).toBeTruthy();
+    expect(usePlayerStore.getState()).toMatchObject({
+      summonAvailable: false,
+      summonedNinjaId: result,
+    });
+    expect(store.performFreeSummon()).toBe(result);
+    expect(localStorage.getItem(PLAYER_SAVE_STORAGE_KEY)).toContain(result);
+
+    store.resetSave();
+    expect(usePlayerStore.getState()).toMatchObject({
+      summonAvailable: true,
+      summonedNinjaId: null,
+    });
   });
 });

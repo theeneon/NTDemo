@@ -16,6 +16,8 @@ export function RosterPage() {
   const setSelectedNinja = usePlayerStore((state) => state.setSelectedNinja);
   const ninjaProgress = usePlayerStore((state) => state.ninjaProgress);
   const equipmentLevels = usePlayerStore((state) => state.equipmentLevels);
+  const summonAvailable = usePlayerStore((state) => state.summonAvailable);
+  const summonedNinjaId = usePlayerStore((state) => state.summonedNinjaId);
   const activeSquad = squadIds
     .map((id) => ninjas.find((ninja) => ninja.id === id))
     .filter((ninja): ninja is Ninja => Boolean(ninja));
@@ -65,7 +67,11 @@ export function RosterPage() {
           <Icon name="summon" />
           <span>
             <strong>Free summon</strong>
-            <small>One demo recruit available</small>
+            <small>
+              {summonAvailable
+                ? "One demo recruit available"
+                : `${ninjas.find(({ id }) => id === summonedNinjaId)?.name ?? "Recruit"} summoned · saved`}
+            </small>
           </span>
           <Icon name="arrow" />
         </Link>

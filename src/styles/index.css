@@ -3447,6 +3447,133 @@ a:focus-visible {
   }
 }
 
+/* Phase 5 connected progression */
+.encounter-node {
+  padding: 0;
+  color: inherit;
+  text-align: left;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+}
+
+.encounter-node:disabled {
+  cursor: not-allowed;
+}
+
+.encounter-node > span:last-child {
+  display: none;
+  min-width: 140px;
+  padding: 9px 11px;
+  color: #2b2015;
+  background: #ddc994;
+  border: 2px ridge #6f4d25;
+  border-radius: 2px;
+  box-shadow: 0 8px 18px rgba(31, 38, 48, 0.2);
+}
+
+.encounter-node:hover > span:last-child,
+.encounter-node:focus-visible > span:last-child,
+.node-available > span:last-child,
+.node-selected > span:last-child {
+  display: block;
+}
+
+.encounter-node > span:last-child > small,
+.encounter-node > span:last-child > strong,
+.encounter-node > span:last-child > span {
+  display: block;
+}
+
+.encounter-node > span:last-child > span,
+.encounter-node > span:last-child > small {
+  color: #725d3e;
+}
+
+.node-selected .node-marker {
+  outline: 3px solid #e4c778;
+  outline-offset: 4px;
+}
+
+.dungeon-card {
+  width: 100%;
+  color: #929baa;
+  text-align: left;
+  border: 1px solid #66512e;
+  cursor: pointer;
+}
+
+.dungeon-card.selected {
+  border-color: #d7b75f;
+  box-shadow:
+    inset 0 0 15px #050708,
+    0 0 0 2px rgba(215, 183, 95, 0.2);
+}
+
+.campaign-summon-link {
+  display: grid;
+  grid-template-columns: 28px 1fr 16px;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+  padding: 11px 13px;
+  color: #d9c078;
+  text-decoration: none;
+  background: linear-gradient(180deg, #30271c, #15130f);
+  border: 1px solid #70552c;
+  border-radius: 3px;
+}
+
+.campaign-summon-link svg {
+  width: 20px;
+}
+
+.campaign-summon-link span,
+.campaign-summon-link strong,
+.campaign-summon-link small {
+  display: block;
+}
+
+.campaign-summon-link small {
+  color: #93866b;
+  font-size: 8px;
+}
+
+.summon-stage-revealed .summon-rings {
+  filter: saturate(1.25);
+}
+
+.summon-result-avatar {
+  width: 112px;
+  margin: 4px auto 10px;
+}
+
+.drawer-reset-save {
+  width: 100%;
+  margin-top: 12px;
+  padding: 10px;
+  color: #bfae86;
+  background: #17130f;
+  border: 1px solid #62492b;
+  border-radius: 3px;
+}
+
+.drawer-reset-armed {
+  color: #ffd0bd;
+  background: #4b2119;
+  border-color: #9e513b;
+}
+
+@media (max-width: 620px) {
+  .encounter-node > span:last-child {
+    display: none !important;
+  }
+
+  .campaign-summon-link {
+    margin-top: 12px;
+  }
+}
+
 @media (max-width: 620px) {
   .page-content {
     padding-inline: 14px;

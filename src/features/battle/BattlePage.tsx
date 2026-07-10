@@ -83,7 +83,9 @@ export function BattlePage() {
     <div className="battle-page battle-presentation-page">
       <header className="battle-header">
         <div>
-          <p className="eyebrow">{encounter.mode} · Repeatable expedition</p>
+          <p className="eyebrow">
+            {encounter.mode === "dungeon" ? "Dungeon · Repeatable expedition" : "Campaign mission"}
+          </p>
           <h1>{encounter.name}</h1>
         </div>
         <div className="battle-status" aria-label="Battle progress">

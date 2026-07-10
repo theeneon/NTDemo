@@ -1,36 +1,50 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { demoContent } from "../../content";
-import { encounters } from "../../content/demoContent";
+import { encounters as encounterPresentation } from "../../content/demoContent";
+import type { EncounterId } from "../../domain/models";
 import { FirstRunGuide } from "../../shared/ui/FirstRunGuide";
 import { Icon } from "../../shared/ui/Icon";
 import { PageHeader } from "../../shared/ui/PageHeader";
-import { calculateNinjaPower, usePlayerStore } from "../../stores/playerStore";
+import { calculateNinjaPower, isEncounterUnlocked, usePlayerStore } from "../../stores/playerStore";
+
+const campaignEncounters = demoContent.encounters.filter(({ mode }) => mode === "campaign");
+const dungeon = demoContent.encounters.find(({ id }) => id === "encounter.underground-shrine")!;
 
 export function CampaignPage() {
   const squadIds = usePlayerStore((state) => state.squadIds);
   const ninjaProgress = usePlayerStore((state) => state.ninjaProgress);
   const equipmentLevels = usePlayerStore((state) => state.equipmentLevels);
+  const completedEncounterIds = usePlayerStore((state) => state.completedEncounterIds);
+  const summonAvailable = usePlayerStore((state) => state.summonAvailable);
   const startBattle = usePlayerStore((state) => state.startBattle);
+  const firstAvailable =
+    campaignEncounters.find(
+      ({ id }) =>
+        !completedEncounterIds.includes(id) && isEncounterUnlocked(id, completedEncounterIds),
+    ) ?? dungeon;
+  const [selectedEncounterId, setSelectedEncounterId] = useState<EncounterId>(firstAvailable.id);
+  const selectedEncounter =
+    demoContent.encounters.find(({ id }) => id === selectedEncounterId) ?? firstAvailable;
+  const selectedUnlocked = isEncounterUnlocked(selectedEncounter.id, completedEncounterIds);
+  const selectedComplete = completedEncounterIds.includes(selectedEncounter.id);
+  const reward = demoContent.rewardTables.find(({ id }) => id === selectedEncounter.rewardTableId)!;
   const squadPower = squadIds.reduce(
     (total, id) =>
       total + (ninjaProgress[id] ? calculateNinjaPower(id, ninjaProgress[id], equipmentLevels) : 0),
     0,
   );
-  const mission = demoContent.encounters.find(
-    (encounter) => encounter.id === "encounter.underground-shrine",
-  )!;
-  const missionReward = demoContent.rewardTables.find(
-    (reward) => reward.id === mission.rewardTableId,
-  )!;
+  const canDeploy = squadIds.length === 4 && selectedUnlocked;
+
   return (
     <div className="page-stack">
       <PageHeader
-        eyebrow="Expedition board · repeatable dungeon"
+        eyebrow="Expedition board · campaign and dungeon"
         title="Choose the next expedition."
-        description="The Underground Shrine is the complete vertical-slice dungeon: deploy your saved squad, earn real rewards, improve, and replay."
+        description="Clear campaign missions in order or replay the Underground Shrine. Victories, unlocks, rewards, and squad power are saved locally."
         action={
           <Link className="secondary-button" to="/squad">
-            Edit squad
+            Edit squad · {squadPower} power
           </Link>
         }
       />
@@ -43,27 +57,36 @@ export function CampaignPage() {
             東
           </div>
           <div className="map-path" aria-hidden="true" />
-          {encounters.map((encounter, index) => (
-            <article
-              className={`encounter-node node-${index + 1} node-${encounter.state}`}
-              key={encounter.id}
-            >
-              <span className="node-marker">
-                {encounter.state === "locked" ? (
-                  <Icon name="lock" />
-                ) : encounter.state === "complete" ? (
-                  <Icon name="check" />
-                ) : (
-                  encounter.number
-                )}
-              </span>
-              <div>
-                <small>{encounter.location}</small>
-                <strong>{encounter.name}</strong>
-                <span>{encounter.power} recommended power</span>
-              </div>
-            </article>
-          ))}
+          {campaignEncounters.map((encounter, index) => {
+            const complete = completedEncounterIds.includes(encounter.id);
+            const unlocked = isEncounterUnlocked(encounter.id, completedEncounterIds);
+            const state = complete ? "complete" : unlocked ? "available" : "locked";
+            const presentation = encounterPresentation.find(
+              ({ id }) => `encounter.${id}` === encounter.id,
+            );
+            return (
+              <button
+                type="button"
+                className={`encounter-node node-${index + 1} node-${state} ${
+                  selectedEncounter.id === encounter.id ? "node-selected" : ""
+                }`}
+                key={encounter.id}
+                disabled={!unlocked}
+                aria-label={`${encounter.name} · ${complete ? "complete" : unlocked ? "available" : "locked"}`}
+                aria-pressed={selectedEncounter.id === encounter.id}
+                onClick={() => setSelectedEncounterId(encounter.id)}
+              >
+                <span className="node-marker">
+                  {!unlocked ? <Icon name="lock" /> : complete ? <Icon name="check" /> : index + 1}
+                </span>
+                <span>
+                  <small>{presentation?.location ?? `Campaign mission ${index + 1}`}</small>
+                  <strong>{encounter.name}</strong>
+                  <span>{encounter.recommendedPower} recommended power</span>
+                </span>
+              </button>
+            );
+          })}
           <div className="map-legend">
             <span>
               <i className="complete" /> Complete
@@ -78,14 +101,20 @@ export function CampaignPage() {
         </section>
 
         <aside className="mission-panel">
-          <p className="eyebrow">Repeatable dungeon · vertical slice</p>
-          <h2>Underground Shrine</h2>
+          <p className="eyebrow">
+            {selectedEncounter.mode === "dungeon" ? "Repeatable dungeon" : "Campaign mission"} ·{" "}
+            {selectedComplete ? "cleared" : selectedUnlocked ? "available" : "locked"}
+          </p>
+          <h2>{selectedEncounter.name}</h2>
           <p>
-            A raider cell has occupied the shrine beneath Moonfall Vale. Clear the chamber and
-            recover its equipment cache.
+            {selectedEncounter.mode === "dungeon"
+              ? "Clear the shrine for repeatable experience, coins, and a seeded equipment cache."
+              : selectedUnlocked
+                ? "Win this mission to save the clear and unlock the next location on the campaign path."
+                : "Complete the previous campaign mission to open this route."}
           </p>
           <div className="enemy-preview">
-            {mission.enemyTeam.map((unit) => {
+            {selectedEncounter.enemyTeam.map((unit) => {
               const enemy = demoContent.ninjas.find(({ id }) => id === unit.ninjaId)!;
               return (
                 <span key={`${unit.ninjaId}-${unit.slot}`}>
@@ -98,40 +127,60 @@ export function CampaignPage() {
           <dl className="mission-facts">
             <div>
               <dt>Recommended</dt>
-              <dd>{mission.recommendedPower} power</dd>
+              <dd>{selectedEncounter.recommendedPower} power</dd>
             </div>
             <div>
               <dt>Battle reward</dt>
               <dd>
-                {missionReward.fixedCoins} coins + {missionReward.squadExperience} XP
+                {reward.fixedCoins} coins + {reward.squadExperience} XP
               </dd>
             </div>
             <div>
               <dt>Squad power</dt>
               <dd className="text-jade">
-                {squadPower} · {squadPower >= mission.recommendedPower ? "Ready" : "Below target"}
+                {squadPower} ·{" "}
+                {squadPower >= selectedEncounter.recommendedPower ? "Ready" : "Below target"}
               </dd>
             </div>
           </dl>
           <Link
-            className={`primary-button full-button ${squadIds.length !== 4 ? "button-disabled" : ""}`}
-            aria-disabled={squadIds.length !== 4}
-            to={squadIds.length === 4 ? "/battle" : "/squad"}
-            onClick={() => {
-              if (squadIds.length === 4) startBattle(mission.id);
+            className={`primary-button full-button ${!canDeploy ? "button-disabled" : ""}`}
+            aria-disabled={!canDeploy}
+            to={canDeploy ? "/battle" : squadIds.length === 4 ? "#" : "/squad"}
+            onClick={(event) => {
+              if (!canDeploy || !startBattle(selectedEncounter.id)) event.preventDefault();
             }}
           >
-            {squadIds.length === 4 ? "Enter dungeon" : "Complete squad"} <Icon name="arrow" />
+            {squadIds.length !== 4
+              ? "Complete squad"
+              : !selectedUnlocked
+                ? "Mission locked"
+                : selectedComplete
+                  ? "Replay mission"
+                  : "Start mission"}{" "}
+            <Icon name="arrow" />
           </Link>
-          <div className="dungeon-card">
+          <button
+            className={`dungeon-card ${selectedEncounter.id === dungeon.id ? "selected" : ""}`}
+            type="button"
+            onClick={() => setSelectedEncounterId(dungeon.id)}
+          >
             <Icon name="shield" />
-            <div>
+            <span>
               <span>Repeatable dungeon</span>
               <strong>Underground Shrine</strong>
-              <small>Unlocked · rewards apply every victory</small>
-            </div>
-            <Icon name="check" />
-          </div>
+              <small>Always unlocked · rewards apply every victory</small>
+            </span>
+            <Icon name={completedEncounterIds.includes(dungeon.id) ? "check" : "arrow"} />
+          </button>
+          <Link className="campaign-summon-link" to="/summon">
+            <Icon name="summon" />
+            <span>
+              <strong>{summonAvailable ? "Free summon ready" : "Free summon claimed"}</strong>
+              <small>Seeded demo · no purchase flow</small>
+            </span>
+            <Icon name="arrow" />
+          </Link>
         </aside>
       </div>
     </div>

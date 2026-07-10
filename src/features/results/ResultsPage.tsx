@@ -131,8 +131,13 @@ export function ResultsPage() {
           to="/battle"
           onClick={() => startBattle(report.encounterId)}
         >
-          Replay dungeon
+          Replay {encounter.mode === "dungeon" ? "dungeon" : "mission"}
         </Link>
+        {isVictory && encounter.mode === "campaign" ? (
+          <Link className="secondary-button" to="/campaign">
+            Next mission unlocked
+          </Link>
+        ) : null}
         <Link
           className="primary-button"
           to="/upgrades"
