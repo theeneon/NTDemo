@@ -17,4 +17,3 @@ This directory is the source of truth for Phase 0. The browser review portal at 
 ## Exit gate
 
 Phase 1 may begin after the product owner accepts these five files as the demo baseline. New ideas that exceed the baseline move to a post-demo backlog unless they replace, rather than add to, an item of comparable size.
-

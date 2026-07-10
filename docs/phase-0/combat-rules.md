@@ -258,4 +258,3 @@ An effect damages every unit, including the source team, from one pre-effect sna
 ## Phase 2 validation consequences
 
 Content validation must reject negative stats, negative potency, duplicate stable IDs, missing basic attacks, unsupported selectors/effects, empty skill priority, non-positive status duration, invalid weighted tables, unreachable encounter prerequisites, and references to missing assets.
-

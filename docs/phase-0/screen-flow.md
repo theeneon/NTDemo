@@ -123,4 +123,3 @@ Rules: The result is seeded and saved. The free summon is consumed once. After u
 | Results | Upgrade | Replay battle, Campaign |
 | Upgrade | Squad | Roster |
 | Summon | Roster | None |
-

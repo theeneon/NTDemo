@@ -1,5 +1,8 @@
 dist/
 node_modules/
+.pnpm-store/
 .plan-render/
 .vercel/
-
+coverage/
+playwright-report/
+test-results/

@@ -1,6 +1,6 @@
-.git
-.plan-render
-node_modules
+dist
 coverage
 playwright-report
 test-results
+pnpm-lock.yaml
+docs/phase-0

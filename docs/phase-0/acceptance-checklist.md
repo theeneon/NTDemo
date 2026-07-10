@@ -79,4 +79,3 @@ These are release criteria for the complete demo, defined now so later phases ca
 - Phase 5 exit: first-run squad-to-reward-to-upgrade-to-replay loop works and persists.
 - Phase 6 exit: locked content volume provides multiple viable squads and no progression dead end.
 - Phase 7 exit: the hosted full loop passes this checklist with no critical defect.
-

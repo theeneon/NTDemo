@@ -1,30 +1,53 @@
 # Ninja Tactics web demo
 
-Phase 0 is an approval-ready definition of the Ninja Tactics browser vertical slice. It includes the locked scope, screen flow and seven low-fidelity wireframes, deterministic combat rules, measurable acceptance criteria, and a production-ready placeholder asset inventory.
+Phase 1 provides the responsive React application foundation for the Ninja Tactics browser vertical slice. It includes the shared shell, seven direct-link routes, placeholder gameplay screens, Zustand stores, Tailwind design system, automated checks, and Vercel SPA deployment configuration.
 
-## Review locally
+The approved planning baseline remains in [docs/phase-0/README.md](docs/phase-0/README.md).
 
-Use Node.js 20 or newer:
+## Stack
+
+- React 19 and TypeScript
+- Vite 8
+- Tailwind CSS 4
+- React Router 7
+- Zustand 5
+- Vitest and Playwright
+
+## Local development
+
+Use Node.js 20.19 or newer, then:
 
 ```text
-npm run dev
+pnpm install
+pnpm dev
 ```
 
-Open `http://localhost:4173`. The server reads only the generated `dist` directory and rebuilds it before starting.
+Vite prints the local URL, normally `http://localhost:5173`.
 
-## Verify
+## Quality commands
 
 ```text
-npm test
-npm run build
+pnpm typecheck
+pnpm lint
+pnpm format:check
+pnpm test
+pnpm test:e2e
+pnpm build
+pnpm preview
 ```
 
-The verification checks required Phase 0 artifacts, local links, duplicate HTML IDs, and the Vercel configuration. The build uses only Node.js built-ins and has no package dependencies.
+## Routes
+
+- `/roster`
+- `/squad`
+- `/campaign`
+- `/battle`
+- `/results`
+- `/upgrades`
+- `/summon`
+
+The Vercel rewrite returns `index.html` for application routes, so every route works when opened or refreshed directly. Phase 0 documents remain available under `/docs/phase-0/`.
 
 ## Deploy to Vercel
 
-Import this repository into Vercel. The committed configuration runs `npm run build` and publishes `dist`. No environment variables or external services are required for Phase 0.
-
-## Source of truth
-
-See [docs/phase-0/README.md](docs/phase-0/README.md). The web portal is the review surface; the Markdown files are the durable planning baseline for Phases 1–7.
+Import this repository into Vercel. The committed configuration runs `npm run build`, publishes `dist`, provides SPA routing, adds security headers, and caches hashed Vite assets. No environment variables are required for Phase 1.

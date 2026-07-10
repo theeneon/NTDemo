@@ -83,4 +83,3 @@ All other requests enter a post-demo backlog. Any change that adds backend servi
 - Combat reference accepted: Pending owner approval
 - Wireframes accepted: Pending owner approval
 - Acceptance and assets accepted: Pending owner approval
-

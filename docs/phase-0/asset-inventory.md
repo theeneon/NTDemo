@@ -132,4 +132,3 @@ Preferred format: OGG plus MP3/AAC fallback as needed after browser testing. Mos
 - Silhouettes remain distinguishable in grayscale and at final small size.
 - Backgrounds do not obscure health bars, status icons, or controls.
 - Missing audio never blocks play and does not create a failed network loop.
-
