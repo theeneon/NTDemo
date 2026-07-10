@@ -67,8 +67,12 @@ test("controls and completes the Phase 4 battle presentation", async ({ page }) 
 
   await page.getByRole("button", { name: "Pause" }).click();
   await expect(page.getByText("Battle paused")).toBeVisible();
-  await page.getByRole("button", { name: "2x battle speed" }).click();
-  await expect(page.getByRole("button", { name: "2x battle speed" })).toHaveAttribute(
+  await expect(page.getByRole("button", { name: "Normal battle speed" })).toHaveAttribute(
+    "aria-pressed",
+    "true",
+  );
+  await page.getByRole("button", { name: "2× battle speed" }).click();
+  await expect(page.getByRole("button", { name: "2× battle speed" })).toHaveAttribute(
     "aria-pressed",
     "true",
   );

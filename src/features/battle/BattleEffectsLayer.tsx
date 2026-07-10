@@ -1,7 +1,7 @@
 import { useLayoutEffect, useRef } from "react";
 import { demoContent } from "../../content";
 import type { BattleEvent, BattleUnitId } from "../../domain/models";
-import type { PlaybackSpeed } from "./useBattlePlayback";
+import { playbackRate, type PlaybackSpeed } from "./useBattlePlayback";
 
 export function BattleEffectsLayer({
   event,
@@ -47,7 +47,11 @@ export function BattleEffectsLayer({
             opacity: 1,
           },
         ],
-        { duration: 145 / speed, easing: "cubic-bezier(.2,.8,.3,1)", fill: "forwards" },
+        {
+          duration: 145 / playbackRate(speed),
+          easing: "cubic-bezier(.2,.8,.3,1)",
+          fill: "forwards",
+        },
       );
       return () => animation.cancel();
     }

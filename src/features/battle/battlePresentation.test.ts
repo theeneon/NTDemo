@@ -61,11 +61,13 @@ describe("battle event presentation", () => {
     expect(presentation.completed).toBe(true);
   });
 
-  it("shortens playback at 2x and under reduced-motion preferences", () => {
+  it("maps Normal, 2x, and 3x onto the requested playback timings", () => {
     const damage = result.events.find((event) => event.type === "damageApplied")!;
-    const normal = eventDisplayDuration(damage, 1, false);
+    const normal = eventDisplayDuration(damage, "normal", false);
+    const twoX = eventDisplayDuration(damage, "2x", false);
 
-    expect(eventDisplayDuration(damage, 2, false)).toBe(Math.round(normal / 2));
-    expect(eventDisplayDuration(damage, 1, true)).toBeLessThan(normal);
+    expect(normal).toBe(twoX * 2);
+    expect(eventDisplayDuration(damage, "3x", false)).toBe(Math.round(twoX / 2));
+    expect(eventDisplayDuration(damage, "normal", true)).toBeLessThan(normal);
   });
 });

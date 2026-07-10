@@ -8,7 +8,7 @@ import {
   type BattlePresentationState,
 } from "./battlePresentation";
 
-export type PlaybackSpeed = 1 | 2;
+export type PlaybackSpeed = "normal" | "2x" | "3x";
 
 export type BattlePlayback = Readonly<{
   presentation: BattlePresentationState;
@@ -28,7 +28,7 @@ export function useBattlePlayback(result: BattleResult): BattlePlayback {
   const [presentation, setPresentation] = useState(() => createBattlePresentation(result));
   const [cursor, setCursor] = useState(0);
   const [isPaused, setPaused] = useState(false);
-  const [speed, setSpeed] = useState<PlaybackSpeed>(1);
+  const [speed, setSpeed] = useState<PlaybackSpeed>("normal");
   const reducedMotion = usePrefersReducedMotion();
 
   useEffect(() => {
@@ -77,7 +77,8 @@ export function eventDisplayDuration(
   speed: PlaybackSpeed,
   reducedMotion: boolean,
 ) {
-  if (reducedMotion) return Math.max(4, Math.round(8 / speed));
+  const rate = playbackRate(speed);
+  if (reducedMotion) return Math.max(4, Math.round(8 / Math.max(1, rate)));
   const durationByType: Partial<Record<BattleEvent["type"], number>> = {
     turnStarted: 90,
     movementIntent: 150,
@@ -94,7 +95,11 @@ export function eventDisplayDuration(
     rewardsCalculated: 200,
     battleEnded: 300,
   };
-  return Math.round((durationByType[event.type] ?? 18) / speed);
+  return Math.round((durationByType[event.type] ?? 18) / rate);
+}
+
+export function playbackRate(speed: PlaybackSpeed) {
+  return speed === "normal" ? 0.5 : speed === "2x" ? 1 : 2;
 }
 
 function usePrefersReducedMotion() {

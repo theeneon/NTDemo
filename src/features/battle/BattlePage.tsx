@@ -88,15 +88,21 @@ export function BattlePage() {
             {playback.isPaused ? "Resume" : "Pause"}
           </button>
           <div className="speed-toggle" aria-label="Battle speed">
-            {([1, 2] as const).map((value) => (
+            {(
+              [
+                { value: "normal", label: "Normal" },
+                { value: "2x", label: "2×" },
+                { value: "3x", label: "3×" },
+              ] as const
+            ).map((option) => (
               <button
-                key={value}
+                key={option.value}
                 type="button"
-                aria-label={`${value}x battle speed`}
-                aria-pressed={playback.speed === value}
-                onClick={() => playback.setSpeed(value)}
+                aria-label={`${option.label} battle speed`}
+                aria-pressed={playback.speed === option.value}
+                onClick={() => playback.setSpeed(option.value)}
               >
-                {value}×
+                {option.label}
               </button>
             ))}
           </div>
