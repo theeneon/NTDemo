@@ -1,0 +1,16 @@
+{
+  "name": "ninja-tactics-phase-0",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Approval-ready Phase 0 planning portal for the Ninja Tactics web demo.",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "dev": "node scripts/serve.mjs",
+    "test": "node scripts/verify.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
+
