@@ -1,9 +1,22 @@
 import { Link } from "react-router-dom";
-import { encounters } from "../../content/demoContent";
+import { demoContent } from "../../content";
+import { battleEnemies, encounters, ninjas } from "../../content/demoContent";
 import { Icon } from "../../shared/ui/Icon";
 import { PageHeader } from "../../shared/ui/PageHeader";
+import { usePlayerStore } from "../../stores/playerStore";
 
 export function CampaignPage() {
+  const squadIds = usePlayerStore((state) => state.squadIds);
+  const squadPower = squadIds.reduce(
+    (total, id) => total + (ninjas.find((ninja) => ninja.id === id)?.power ?? 0),
+    0,
+  );
+  const mission = demoContent.encounters.find(
+    (encounter) => encounter.id === "encounter.bamboo-pass",
+  )!;
+  const missionReward = demoContent.rewardTables.find(
+    (reward) => reward.id === mission.rewardTableId,
+  )!;
   return (
     <div className="page-stack">
       <PageHeader
@@ -65,25 +78,29 @@ export function CampaignPage() {
             escapes.
           </p>
           <div className="enemy-preview">
-            {["賊", "鬼", "目", "呪"].map((glyph, index) => (
-              <span key={glyph}>
-                <i>{glyph}</i>
-                <small>Lv {3 + index}</small>
+            {battleEnemies.map((enemy, index) => (
+              <span key={enemy.name}>
+                <i>{enemy.glyph}</i>
+                <small>Lv {mission.enemyTeam[index]?.level}</small>
               </span>
             ))}
           </div>
           <dl className="mission-facts">
             <div>
               <dt>Recommended</dt>
-              <dd>430 power</dd>
+              <dd>{mission.recommendedPower} power</dd>
             </div>
             <div>
-              <dt>First clear</dt>
-              <dd>100 coins + wraps</dd>
+              <dt>Battle reward</dt>
+              <dd>
+                {missionReward.fixedCoins} coins + {missionReward.squadExperience} XP
+              </dd>
             </div>
             <div>
               <dt>Squad power</dt>
-              <dd className="text-jade">477 · Ready</dd>
+              <dd className="text-jade">
+                {squadPower} · {squadPower >= mission.recommendedPower ? "Ready" : "Below target"}
+              </dd>
             </div>
           </dl>
           <Link className="primary-button full-button" to="/battle">

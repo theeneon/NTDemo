@@ -26,4 +26,15 @@ describe("application routes", () => {
       screen.getByRole("heading", { name: "This route leaves the mission map." }),
     ).toBeInTheDocument();
   });
+
+  it("renders the Phase 2 content codex from validated data", () => {
+    render(
+      <MemoryRouter initialEntries={["/content-lab"]}>
+        <App />
+      </MemoryRouter>,
+    );
+    expect(screen.getByRole("heading", { name: "The Content Codex" })).toBeInTheDocument();
+    expect(screen.getByText("Validation passed")).toBeInTheDocument();
+    expect(screen.getByText(/Duplicate ID 'ninja.ember'/)).toBeInTheDocument();
+  });
 });

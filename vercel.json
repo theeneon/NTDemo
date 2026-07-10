@@ -12,7 +12,8 @@
     { "source": "/battle", "destination": "/index.html" },
     { "source": "/results", "destination": "/index.html" },
     { "source": "/upgrades", "destination": "/index.html" },
-    { "source": "/summon", "destination": "/index.html" }
+    { "source": "/summon", "destination": "/index.html" },
+    { "source": "/content-lab", "destination": "/index.html" }
   ],
   "headers": [
     {

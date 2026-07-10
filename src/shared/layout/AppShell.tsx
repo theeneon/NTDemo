@@ -54,6 +54,7 @@ const navigation: {
     mobile: true,
   },
   { to: "/summon", label: "Spirit Gate", icon: "summon", hotkey: "G" },
+  { to: "/content-lab", label: "Content Codex", icon: "spark", hotkey: "C" },
 ];
 
 function Brand() {
@@ -114,13 +115,13 @@ export function AppShell() {
         <div className="phase-status">
           <div>
             <span>Active quest</span>
-            <strong>Chapter I</strong>
+            <strong>Chapter II</strong>
           </div>
           <div className="phase-track">
             <span />
           </div>
-          <p>Assemble a four-ninja warband and clear the road through Bamboo Pass.</p>
-          <a href="/docs/phase-0/README.md">Open quest design notes</a>
+          <p>Validate the realm's combatants, skills, rewards, and encounter records.</p>
+          <a href="/content-lab">Open content codex</a>
         </div>
       </aside>
 

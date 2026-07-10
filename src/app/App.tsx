@@ -2,6 +2,7 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import { AppShell } from "../shared/layout/AppShell";
 import { BattlePage } from "../features/battle/BattlePage";
 import { CampaignPage } from "../features/campaign/CampaignPage";
+import { ContentLabPage } from "../features/content-lab/ContentLabPage";
 import { NotFoundPage } from "../features/not-found/NotFoundPage";
 import { ResultsPage } from "../features/results/ResultsPage";
 import { RosterPage } from "../features/roster/RosterPage";
@@ -17,6 +18,7 @@ export function App() {
         <Route path="roster" element={<RosterPage />} />
         <Route path="squad" element={<SquadPage />} />
         <Route path="campaign" element={<CampaignPage />} />
+        <Route path="content-lab" element={<ContentLabPage />} />
         <Route path="battle" element={<BattlePage />} />
         <Route path="results" element={<ResultsPage />} />
         <Route path="upgrades" element={<UpgradesPage />} />

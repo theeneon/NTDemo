@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import { demoContent } from "../../content";
 import { battleEnemies, ninjas } from "../../content/demoContent";
 import { Icon } from "../../shared/ui/Icon";
 import { NinjaAvatar } from "../../shared/ui/NinjaAvatar";
@@ -9,6 +10,10 @@ export function BattlePage() {
   const navigate = useNavigate();
   const squadIds = usePlayerStore((state) => state.squadIds);
   const squad = squadIds.map((id) => ninjas.find((ninja) => ninja.id === id)).filter(Boolean);
+  const squadPower = squad.reduce((total, ninja) => total + (ninja?.power ?? 0), 0);
+  const enemyPower = demoContent.encounters.find(
+    (encounter) => encounter.id === "encounter.bamboo-pass",
+  )!.recommendedPower;
   const isPaused = usePresentationStore((state) => state.isBattlePaused);
   const speed = usePresentationStore((state) => state.playbackSpeed);
   const togglePause = usePresentationStore((state) => state.toggleBattlePause);
@@ -68,7 +73,7 @@ export function BattlePage() {
         <div className="team team-player">
           <div className="team-label">
             <span>Your squad</span>
-            <strong>477 power</strong>
+            <strong>{squadPower} power</strong>
           </div>
           {squad.map((ninja, index) =>
             ninja ? (
@@ -93,7 +98,7 @@ export function BattlePage() {
         <div className="team team-enemy">
           <div className="team-label">
             <span>Raiders</span>
-            <strong>430 power</strong>
+            <strong>{enemyPower} power</strong>
           </div>
           {battleEnemies.map((enemy, index) => (
             <article className={`battle-unit unit-${index + 1}`} key={enemy.name}>

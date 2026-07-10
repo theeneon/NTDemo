@@ -1,6 +1,6 @@
 import { useMemo, useState, type CSSProperties } from "react";
 import { Link } from "react-router-dom";
-import { ninjas, type NinjaRole } from "../../content/demoContent";
+import { ninjas, type Ninja, type NinjaRole } from "../../content/demoContent";
 import { Icon } from "../../shared/ui/Icon";
 import { NinjaAvatar } from "../../shared/ui/NinjaAvatar";
 import { PageHeader } from "../../shared/ui/PageHeader";
@@ -13,6 +13,11 @@ export function RosterPage() {
   const [filter, setFilter] = useState<Filter>("All");
   const squadIds = usePlayerStore((state) => state.squadIds);
   const setSelectedNinja = usePlayerStore((state) => state.setSelectedNinja);
+  const activeSquad = squadIds
+    .map((id) => ninjas.find((ninja) => ninja.id === id))
+    .filter((ninja): ninja is Ninja => Boolean(ninja));
+  const activePower = activeSquad.reduce((total, ninja) => total + ninja.power, 0);
+  const roleCoverage = new Set(activeSquad.map((ninja) => ninja.role)).size;
   const visibleNinjas = useMemo(
     () => (filter === "All" ? ninjas : ninjas.filter((ninja) => ninja.role === filter)),
     [filter],
@@ -39,12 +44,12 @@ export function RosterPage() {
         </div>
         <div>
           <span>Combined power</span>
-          <strong>477</strong>
+          <strong>{activePower}</strong>
           <small>recommended: 430</small>
         </div>
         <div>
           <span>Role coverage</span>
-          <strong>4 / 4</strong>
+          <strong>{roleCoverage} / 4</strong>
           <small>balanced formation</small>
         </div>
         <Link to="/summon">

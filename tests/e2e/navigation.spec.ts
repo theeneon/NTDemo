@@ -11,7 +11,16 @@ test("navigates the Phase 1 shell", async ({ page }) => {
 });
 
 test("supports direct-link refresh and phone width", async ({ page }, testInfo) => {
-  const routes = ["roster", "squad", "campaign", "battle", "results", "upgrades", "summon"];
+  const routes = [
+    "roster",
+    "squad",
+    "campaign",
+    "battle",
+    "results",
+    "upgrades",
+    "summon",
+    "content-lab",
+  ];
   for (const route of routes) {
     await page.goto(`/${route}`);
     expect(

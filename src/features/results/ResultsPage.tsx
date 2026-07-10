@@ -1,9 +1,15 @@
 import { Link } from "react-router-dom";
+import { demoContent } from "../../content";
 import { ninjas } from "../../content/demoContent";
 import { Icon } from "../../shared/ui/Icon";
 import { NinjaAvatar } from "../../shared/ui/NinjaAvatar";
 
 export function ResultsPage() {
+  const encounter = demoContent.encounters.find((item) => item.id === "encounter.bamboo-pass")!;
+  const reward = demoContent.rewardTables.find((item) => item.id === encounter.rewardTableId)!;
+  const equipmentDrop = reward.weightedDrops.find((drop) => drop.kind === "equipment");
+  const equipment = demoContent.equipment.find((item) => item.id === equipmentDrop?.contentId);
+
   return (
     <div className="results-page">
       <section className="victory-hero">
@@ -19,8 +25,8 @@ export function ResultsPage() {
           </span>
           <div>
             <small>Coins earned</small>
-            <strong>+100</strong>
-            <p>1,340 total</p>
+            <strong>+{reward.fixedCoins}</strong>
+            <p>{(1_240 + reward.fixedCoins).toLocaleString()} total</p>
           </div>
         </article>
         <article>
@@ -29,7 +35,7 @@ export function ResultsPage() {
           </span>
           <div>
             <small>Squad experience</small>
-            <strong>+40</strong>
+            <strong>+{reward.squadExperience}</strong>
             <p>Applied to all four ninjas</p>
           </div>
         </article>
@@ -37,8 +43,8 @@ export function ResultsPage() {
           <span>装</span>
           <div>
             <small>Equipment drop</small>
-            <strong>Scout wraps</strong>
-            <p>Defense +4 · New</p>
+            <strong>{equipment?.name ?? "Equipment"}</strong>
+            <p>Validated reward table · New</p>
           </div>
         </article>
       </section>
@@ -63,7 +69,7 @@ export function ResultsPage() {
                   <i style={{ width: `${58 + index * 8}%` }} />
                 </div>
               </div>
-              <b>+40 XP</b>
+              <b>+{reward.squadExperience} XP</b>
             </article>
           ))}
         </div>
