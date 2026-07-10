@@ -1,140 +1,281 @@
+import { useCallback, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { demoContent } from "../../content";
-import { battleEnemies, ninjas } from "../../content/demoContent";
+import type { BattleEvent, BattleUnitId, FormationSlot, NinjaId } from "../../domain/models";
+import { formatBattleLog, simulateBattle } from "../../engine";
 import { Icon } from "../../shared/ui/Icon";
-import { NinjaAvatar } from "../../shared/ui/NinjaAvatar";
-import { usePlayerStore } from "../../stores/playerStore";
-import { usePresentationStore } from "../../stores/presentationStore";
+import { initialSquadIds, usePlayerStore } from "../../stores/playerStore";
+import { BattleEffectsLayer } from "./BattleEffectsLayer";
+import { BattleUnitCard } from "./BattleUnitCard";
+import { useBattlePlayback } from "./useBattlePlayback";
+
+const encounterId = "encounter.bamboo-pass" as const;
+const battleSeed = "phase-4-bamboo-pass";
 
 export function BattlePage() {
   const navigate = useNavigate();
-  const squadIds = usePlayerStore((state) => state.squadIds);
-  const squad = squadIds.map((id) => ninjas.find((ninja) => ninja.id === id)).filter(Boolean);
-  const squadPower = squad.reduce((total, ninja) => total + (ninja?.power ?? 0), 0);
-  const enemyPower = demoContent.encounters.find(
-    (encounter) => encounter.id === "encounter.bamboo-pass",
-  )!.recommendedPower;
-  const isPaused = usePresentationStore((state) => state.isBattlePaused);
-  const speed = usePresentationStore((state) => state.playbackSpeed);
-  const togglePause = usePresentationStore((state) => state.toggleBattlePause);
-  const setSpeed = usePresentationStore((state) => state.setPlaybackSpeed);
+  const selectedSquadIds = usePlayerStore((state) => state.squadIds);
+  const squadIds = selectedSquadIds.length === 4 ? selectedSquadIds : initialSquadIds;
+  const squadKey = squadIds.join("|");
+  const result = useMemo(() => {
+    const playerTeam = squadKey.split("|").map((slug, slot) => ({
+      ninjaId: `ninja.${slug}` as NinjaId,
+      level: 3,
+      slot: slot as FormationSlot,
+    }));
+    return simulateBattle({
+      content: demoContent,
+      encounterId,
+      playerTeam,
+      seed: battleSeed,
+    });
+  }, [squadKey]);
+  const playback = useBattlePlayback(result);
+  const [isLogOpen, setLogOpen] = useState(false);
+  const [battlefieldElement, setBattlefieldElement] = useState<HTMLElement | null>(null);
+  const unitElements = useRef(new Map<BattleUnitId, HTMLElement>());
+  const registerUnit = useCallback((unitId: BattleUnitId, element: HTMLElement | null) => {
+    if (element) unitElements.current.set(unitId, element);
+    else unitElements.current.delete(unitId);
+  }, []);
+  const getUnitElement = useCallback(
+    (unitId: BattleUnitId) => unitElements.current.get(unitId),
+    [],
+  );
+
+  const units = Object.values(playback.presentation.units).sort(
+    (left, right) => left.snapshot.slot - right.snapshot.slot,
+  );
+  const playerUnits = units.filter(({ snapshot }) => snapshot.side === "player");
+  const enemyUnits = units.filter(({ snapshot }) => snapshot.side === "enemy");
+  const upcomingTurns = result.events
+    .slice(playback.cursor)
+    .filter(
+      (event): event is Extract<BattleEvent, { type: "turnStarted" }> =>
+        event.type === "turnStarted",
+    )
+    .slice(0, 6);
+  const formattedLog = useMemo(
+    () => formatBattleLog(result.events.slice(0, playback.cursor), demoContent, result.finalUnits),
+    [playback.cursor, result],
+  );
+  const currentMessage = describeCurrentEvent(playback.currentEvent, result.finalUnits);
+  const activeName = playback.presentation.activeUnitId
+    ? result.finalUnits.find(({ id }) => id === playback.presentation.activeUnitId)?.name
+    : undefined;
 
   return (
-    <div className="battle-page">
+    <div className="battle-page battle-presentation-page">
       <header className="battle-header">
         <div>
           <p className="eyebrow">Campaign · Encounter 02</p>
           <h1>Bamboo Pass</h1>
         </div>
-        <div className="battle-status">
-          <span>Turn 12</span>
+        <div className="battle-status" aria-label="Battle progress">
+          <span>Turn {playback.presentation.turn || "—"}</span>
           <i />
-          <span>Wave 1 of 1</span>
+          <span>{Math.round(playback.progress * 100)}% resolved</span>
+          {playback.reducedMotion ? <small>Reduced motion</small> : null}
         </div>
-        <div className="battle-controls">
-          <button type="button" onClick={togglePause}>
-            <Icon name={isPaused ? "play" : "pause"} />
-            {isPaused ? "Resume" : "Pause"}
+        <div className="battle-controls" aria-label="Battle playback controls">
+          <button
+            type="button"
+            aria-pressed={playback.isPaused}
+            disabled={playback.presentation.completed}
+            onClick={() => playback.setPaused(!playback.isPaused)}
+          >
+            <Icon name={playback.isPaused ? "play" : "pause"} />
+            {playback.isPaused ? "Resume" : "Pause"}
           </button>
           <div className="speed-toggle" aria-label="Battle speed">
             {([1, 2] as const).map((value) => (
               <button
                 key={value}
                 type="button"
-                aria-pressed={speed === value}
-                onClick={() => setSpeed(value)}
+                aria-label={`${value}x battle speed`}
+                aria-pressed={playback.speed === value}
+                onClick={() => playback.setSpeed(value)}
               >
                 {value}×
               </button>
             ))}
           </div>
-          <button className="skip-button" type="button" onClick={() => navigate("/results")}>
-            <Icon name="skip" /> Skip
-          </button>
+          {playback.presentation.completed ? (
+            <button className="skip-button" type="button" onClick={playback.replay}>
+              <Icon name="play" /> Replay
+            </button>
+          ) : (
+            <button className="skip-button" type="button" onClick={playback.skip}>
+              <Icon name="skip" /> Skip
+            </button>
+          )}
         </div>
       </header>
 
       <section className="turn-order" aria-label="Upcoming turn order">
         <span>Next</span>
-        {["ember", "raider", "mist", "brute", "kite", "reed"].map((name, index) => (
-          <i key={`${name}-${index}`} className={index === 0 ? "current" : ""}>
-            {name.slice(0, 1).toUpperCase()}
-          </i>
-        ))}
-        <small>Deterministic event preview</small>
+        {upcomingTurns.map((event, index) => {
+          const unit = result.finalUnits.find(({ id }) => id === event.unitId);
+          return (
+            <i key={event.sequence} className={index === 0 ? "current" : ""} title={unit?.name}>
+              {unit?.name.slice(0, 1) ?? "?"}
+            </i>
+          );
+        })}
+        {!upcomingTurns.length ? <b>Battle complete</b> : null}
+        <small>Seed · {result.seed}</small>
       </section>
 
-      <section className="battlefield" aria-label="Static battle presentation placeholder">
-        <div className="battlefield-copy">
-          <span>Eastern grove</span>
-          <strong>{isPaused ? "Battle paused" : "Ember prepares Cinder Arc"}</strong>
-          <small>Presentation placeholder · engine connects in Phase 3</small>
+      <section
+        ref={setBattlefieldElement}
+        className="battlefield live-battlefield"
+        aria-label="Animated four versus four battlefield"
+      >
+        <div className="battlefield-horizon" aria-hidden="true">
+          <i />
+          <i />
+          <i />
         </div>
-        <div className="team team-player">
-          <div className="team-label">
-            <span>Your squad</span>
-            <strong>{squadPower} power</strong>
-          </div>
-          {squad.map((ninja, index) =>
-            ninja ? (
-              <article className={`battle-unit unit-${index + 1}`} key={ninja.id}>
-                <div className="unit-turn-marker">{index === 1 ? "Acting" : ""}</div>
-                <NinjaAvatar ninja={ninja} size="lg" />
-                <div className="unit-name">
-                  <strong>{ninja.name}</strong>
-                  <span>Lv {ninja.level}</span>
-                </div>
-                <div className="health-bar">
-                  <span style={{ width: `${95 - index * 9}%` }} />
-                </div>
-                <div className="status-row">
-                  <i>ATK</i>
-                  {index === 2 ? <i>HOT</i> : null}
-                </div>
-              </article>
-            ) : null,
-          )}
+        <div className="battlefield-copy" aria-live="polite">
+          <span>
+            Eastern grove · Event {playback.cursor} of {result.events.length}
+          </span>
+          <strong>{activeName ? `${activeName} · ${currentMessage}` : currentMessage}</strong>
+          <small>
+            {playback.isPaused && !playback.presentation.completed
+              ? "Battle paused"
+              : "Sequential event playback"}
+          </small>
         </div>
-        <div className="team team-enemy">
+
+        <div
+          className="battle-formation battle-formation-player"
+          aria-label="Moon Vanguard formation"
+        >
           <div className="team-label">
-            <span>Raiders</span>
-            <strong>{enemyPower} power</strong>
+            <span>Moon Vanguard</span>
+            <strong>{playerUnits.filter(({ defeated }) => !defeated).length} standing</strong>
           </div>
-          {battleEnemies.map((enemy, index) => (
-            <article className={`battle-unit unit-${index + 1}`} key={enemy.name}>
-              <div className="enemy-avatar">
-                <span>{enemy.glyph}</span>
-              </div>
-              <div className="unit-name">
-                <strong>{enemy.name}</strong>
-                <span>Lv {3 + index}</span>
-              </div>
-              <div className="health-bar enemy-health">
-                <span style={{ width: `${enemy.health}%` }} />
-              </div>
-              <div className="status-row">{index === 2 ? <i>STUN</i> : <i>—</i>}</div>
-            </article>
+          {playerUnits.map((unit) => (
+            <BattleUnitCard
+              key={unit.id}
+              unit={unit}
+              isActive={playback.presentation.activeUnitId === unit.id}
+              currentEvent={playback.currentEvent}
+              elementRef={(element) => registerUnit(unit.id, element)}
+            />
           ))}
         </div>
+
+        <div
+          className="battle-formation battle-formation-enemy"
+          aria-label="Bamboo Pass raider formation"
+        >
+          <div className="team-label">
+            <span>Bamboo Raiders</span>
+            <strong>{enemyUnits.filter(({ defeated }) => !defeated).length} standing</strong>
+          </div>
+          {enemyUnits.map((unit) => (
+            <BattleUnitCard
+              key={unit.id}
+              unit={unit}
+              isActive={playback.presentation.activeUnitId === unit.id}
+              currentEvent={playback.currentEvent}
+              elementRef={(element) => registerUnit(unit.id, element)}
+            />
+          ))}
+        </div>
+
         <span className="versus-mark" aria-hidden="true">
-          対
+          VS
         </span>
+        <BattleEffectsLayer
+          event={playback.currentEvent}
+          battlefield={battlefieldElement}
+          getUnitElement={getUnitElement}
+          speed={playback.speed}
+          reducedMotion={playback.reducedMotion}
+        />
+
+        {playback.presentation.completed ? (
+          <div className="battle-result-overlay" role="status" aria-label="Battle result">
+            <span>Encounter resolved</span>
+            <strong>{playback.presentation.outcome}</strong>
+            <p>
+              {playback.presentation.rewards
+                ? `${playback.presentation.rewards.coins} coins · ${playback.presentation.rewards.squadExperience} squad XP`
+                : "No rewards granted"}
+            </p>
+            <div>
+              <button type="button" onClick={playback.replay}>
+                <Icon name="play" /> Replay battle
+              </button>
+              <button type="button" onClick={() => navigate("/results")}>
+                View spoils <Icon name="arrow" />
+              </button>
+            </div>
+          </div>
+        ) : null}
       </section>
 
-      <section className="battle-log-preview">
+      <section className={`battle-log-preview ${isLogOpen ? "battle-log-preview-open" : ""}`}>
         <div>
           <span className="event-icon">
             <Icon name="battle" />
           </span>
           <p>
-            <strong>Ember used Cinder Arc</strong>
-            <span>Raider took 84 damage · Defense down applied</span>
+            <strong>{currentMessage}</strong>
+            <span>{formattedLog.at(-1) ?? "Formations enter Bamboo Pass."}</span>
           </p>
         </div>
-        <button type="button">
-          Open combat log <Icon name="chevron" />
+        <button type="button" aria-expanded={isLogOpen} onClick={() => setLogOpen(!isLogOpen)}>
+          {isLogOpen ? "Close combat log" : "Open combat log"} <Icon name="chevron" />
         </button>
+        {isLogOpen ? (
+          <ol aria-label="Live combat log">
+            {formattedLog.slice(-12).map((line) => (
+              <li key={line}>{line}</li>
+            ))}
+          </ol>
+        ) : null}
       </section>
     </div>
   );
+}
+
+function describeCurrentEvent(
+  event: BattleEvent | null,
+  units: readonly { id: BattleUnitId; name: string }[],
+) {
+  if (!event) return "Formations ready";
+  const name = (unitId: BattleUnitId) => units.find(({ id }) => id === unitId)?.name ?? unitId;
+  if (event.type === "battleStarted") return "Battle begins";
+  if (event.type === "turnStarted") return "takes the turn";
+  if (event.type === "movementIntent") {
+    return event.intent === "projectile"
+      ? "launches a projectile"
+      : event.intent === "stationary"
+        ? "channels power"
+        : "closes the distance";
+  }
+  if (event.type === "skillUsed") {
+    return demoContent.skills.find(({ id }) => id === event.skillId)?.name ?? "uses a skill";
+  }
+  if (event.type === "damageApplied")
+    return `${name(event.targetUnitId)} takes ${event.amount} damage`;
+  if (event.type === "healingApplied")
+    return `${name(event.targetUnitId)} recovers ${event.amount} health`;
+  if (event.type === "statusApplied" || event.type === "statusRefreshed") {
+    return demoContent.statuses.find(({ id }) => id === event.statusId)?.name ?? "Status changed";
+  }
+  if (event.type === "statusTicked")
+    return `${name(event.targetUnitId)} · ${event.statusId.replace("status.", "")}`;
+  if (event.type === "unitDefeated") return `${name(event.unitId)} is defeated`;
+  if (event.type === "passiveTriggered") {
+    return demoContent.skills.find(({ id }) => id === event.skillId)?.name ?? "Passive triggered";
+  }
+  if (event.type === "turnSkipped") return `${name(event.unitId)} is stunned`;
+  if (event.type === "battleEnded") return `${event.outcome} · ${event.turns} turns`;
+  if (event.type === "rewardsCalculated") return "Rewards secured";
+  return "Battle state updated";
 }

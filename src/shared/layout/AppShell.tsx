@@ -116,13 +116,15 @@ export function AppShell() {
         <div className="phase-status">
           <div>
             <span>Active quest</span>
-            <strong>Chapter III</strong>
+            <strong>Chapter IV</strong>
           </div>
           <div className="phase-track">
             <span />
           </div>
-          <p>Resolve seeded battles into deterministic, replayable combat events.</p>
-          <a href="/combat-lab">Open combat forge</a>
+          <p>
+            Present every combat event with responsive formations, effects, and playback controls.
+          </p>
+          <a href="/battle">Enter the battlefield</a>
         </div>
       </aside>
 

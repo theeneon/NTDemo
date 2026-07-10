@@ -57,3 +57,34 @@ test("replays a seeded combat simulation in the Combat Forge", async ({ page }) 
   await page.getByRole("button", { name: "Run seeded battle" }).click();
   await expect(page.getByRole("list", { name: "Battle event log" })).toHaveText(seededLog ?? "");
 });
+
+test("controls and completes the Phase 4 battle presentation", async ({ page }) => {
+  await page.goto("/battle");
+  await expect(page.getByRole("heading", { name: "Bamboo Pass" })).toBeVisible();
+  await expect(
+    page.getByRole("region", { name: "Animated four versus four battlefield" }),
+  ).toBeVisible();
+
+  await page.getByRole("button", { name: "Pause" }).click();
+  await expect(page.getByText("Battle paused")).toBeVisible();
+  await page.getByRole("button", { name: "2x battle speed" }).click();
+  await expect(page.getByRole("button", { name: "2x battle speed" })).toHaveAttribute(
+    "aria-pressed",
+    "true",
+  );
+  await page.getByRole("button", { name: "Skip" }).click();
+  await expect(page.getByRole("status", { name: "Battle result" })).toBeVisible();
+  await expect(page.getByText("Encounter resolved")).toBeVisible();
+
+  await page.getByRole("button", { name: "Replay battle" }).click();
+  await expect(page.getByRole("button", { name: "Skip" })).toBeVisible();
+});
+
+test("honors reduced-motion battle playback", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("/battle");
+  await expect(page.getByText("Reduced motion")).toBeVisible();
+  await expect(page.getByRole("status", { name: "Battle result" })).toBeVisible({
+    timeout: 15_000,
+  });
+});
