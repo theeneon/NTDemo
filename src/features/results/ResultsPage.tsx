@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import "./ResultsPage.css";
 import { demoContent } from "../../content";
 import { ninjas } from "../../content/demoContent";
 import { FirstRunGuide } from "../../shared/ui/FirstRunGuide";

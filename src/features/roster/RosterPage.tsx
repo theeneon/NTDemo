@@ -1,5 +1,6 @@
 import { useMemo, useState, type CSSProperties } from "react";
 import { Link } from "react-router-dom";
+import "./RosterPage.css";
 import { ninjas, type Ninja, type NinjaRole } from "../../content/demoContent";
 import { FirstRunGuide } from "../../shared/ui/FirstRunGuide";
 import { Icon } from "../../shared/ui/Icon";

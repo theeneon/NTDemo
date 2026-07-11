@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import "./NotFoundPage.css";
 import { Icon } from "../../shared/ui/Icon";
 
 export function NotFoundPage() {

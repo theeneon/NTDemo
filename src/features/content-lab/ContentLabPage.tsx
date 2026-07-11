@@ -1,3 +1,4 @@
+import "./ContentLabPage.css";
 import { demoContent, rawDemoContent, validateGameContent } from "../../content";
 import type { NinjaId } from "../../domain/models";
 import { createDemoPlayerProfile } from "../../player/profile";

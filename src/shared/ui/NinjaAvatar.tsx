@@ -1,4 +1,5 @@
 import type { CSSProperties } from "react";
+import "./NinjaAvatar.css";
 import type { Ninja } from "../../content/demoContent";
 
 export function NinjaAvatar({ ninja, size = "md" }: { ninja: Ninja; size?: "sm" | "md" | "lg" }) {

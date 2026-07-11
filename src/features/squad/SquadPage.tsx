@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import "./SquadPage.css";
 import { ninjas } from "../../content/demoContent";
 import { FirstRunGuide } from "../../shared/ui/FirstRunGuide";
 import { Icon } from "../../shared/ui/Icon";

@@ -1,0 +1,260 @@
+/* Results route. */
+.result-progress {
+  padding: clamp(18px, 2.6vw, 28px);
+}
+
+.results-page {
+  width: min(100%, 1050px);
+  margin: 0 auto;
+  display: grid;
+  gap: 23px;
+}
+
+.victory-hero {
+  text-align: center;
+}
+
+.victory-seal {
+  width: 78px;
+  height: 78px;
+  display: grid;
+  place-items: center;
+  margin: 0 auto 15px;
+  border-radius: 50%;
+  font-family: Georgia, serif;
+  font-size: 28px;
+}
+
+.victory-hero h1 {
+  margin: 0;
+  font-family: Georgia, serif;
+  font-size: clamp(40px, 5vw, 62px);
+  font-weight: 500;
+  letter-spacing: -0.05em;
+}
+
+.victory-hero > p:last-child {
+  max-width: 520px;
+  margin: 11px auto 0;
+  font-size: 12px;
+}
+
+.reward-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.reward-grid article {
+  display: grid;
+  grid-template-columns: 52px 1fr;
+  align-items: center;
+  gap: 13px;
+  padding: 16px;
+}
+
+.reward-grid article > span {
+  width: 52px;
+  height: 52px;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  font-family: Georgia, serif;
+}
+
+.reward-grid svg {
+  width: 24px;
+}
+
+.reward-grid small,
+.reward-grid strong,
+.reward-grid p {
+  display: block;
+  margin: 0;
+}
+
+.reward-grid small {
+  font-size: 8px;
+  text-transform: uppercase;
+}
+
+.reward-grid strong {
+  font-family: Georgia, serif;
+  font-size: 20px;
+  font-weight: 500;
+}
+
+.reward-grid p {
+  font-size: 8px;
+}
+
+.equipment-reward > span {
+  color: #5f5582 !important;
+  background: #e9e3f1 !important;
+}
+
+.result-progress .section-toolbar > span {
+  color: #397d6a;
+  font-size: 9px;
+  font-weight: 800;
+}
+
+.progress-list {
+  display: grid;
+  gap: 7px;
+}
+
+.progress-list article {
+  display: grid;
+  grid-template-columns: 42px 1fr auto;
+  align-items: center;
+  gap: 11px;
+  padding: 10px;
+  border: 1px solid #e3dccf;
+}
+
+.progress-list article > div span {
+  display: flex;
+  justify-content: space-between;
+}
+
+.progress-list strong {
+  font-size: 10px;
+}
+
+.progress-list small {
+  font-size: 8px;
+}
+
+.progress-list b {
+  color: #397d6a;
+  font-size: 9px;
+}
+
+.xp-bar {
+  height: 5px;
+  margin-top: 6px;
+  overflow: hidden;
+  border-radius: 8px;
+}
+
+.xp-bar i {
+  display: block;
+  height: 100%;
+  background: #51a68d;
+  border-radius: inherit;
+}
+
+.result-actions {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+
+.defeat-seal {
+  color: #f0baa5;
+  background: radial-gradient(circle, #8f4634, #361a15);
+  border-color: #b8794d;
+}
+
+.empty-results-page {
+  min-height: 60vh;
+  place-content: center;
+}
+
+.empty-results-page .primary-button {
+  width: fit-content;
+  margin: 18px auto 0;
+}
+
+@media (max-width: 620px) {
+  .reward-grid {
+    grid-template-columns: 1fr;
+  }
+  .reward-grid article {
+    min-height: 83px;
+  }
+  .result-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+  .result-actions .primary-button {
+    grid-column: 1 / 3;
+  }
+  .victory-hero h1 {
+    font-size: 39px;
+  }
+}
+
+.result-progress {
+  color: #e5dac0;
+  background: linear-gradient(180deg, rgba(41, 49, 48, 0.98), rgba(15, 21, 22, 0.99)), #161d1e;
+  border: 2px ridge #70552f;
+  border-radius: 6px;
+  box-shadow:
+    inset 0 0 25px rgba(0, 0, 0, 0.46),
+    0 7px 14px rgba(0, 0, 0, 0.35);
+}
+
+.progress-list article {
+  color: #ded3ba;
+  background: linear-gradient(180deg, #2a3434, #151c1e);
+  border-color: #50462f;
+  border-radius: 4px;
+  box-shadow: inset 0 0 9px #0a0d0e;
+}
+
+.progress-list small {
+  color: #8c978f;
+}
+
+.results-page {
+  color: #e4d9c0;
+}
+
+.victory-seal {
+  color: #fff0bb;
+  background: radial-gradient(circle, #448d6d, #173e31);
+  border: 7px double #d0ad55;
+  box-shadow:
+    inset 0 0 16px #07130f,
+    0 0 30px rgba(74, 161, 121, 0.28);
+}
+
+.victory-hero h1 {
+  color: #f4e0ad;
+  text-shadow: 0 3px #000;
+}
+
+.victory-hero > p:last-child {
+  color: #abb5ae;
+}
+
+.reward-grid article {
+  color: #e7dcc4;
+  background: linear-gradient(180deg, #303a39, #151c1d);
+  border: 2px ridge #6e532f;
+  border-radius: 5px;
+  box-shadow: inset 0 0 14px #090c0d;
+}
+
+.reward-grid article > span {
+  color: #ffdc7f;
+  background: radial-gradient(circle, #8d5e25, #2b1b0b);
+  border: 1px solid #b98938;
+}
+
+.reward-grid small,
+.reward-grid p {
+  color: #8f9a93;
+}
+
+.reward-grid strong {
+  color: #f2d585;
+}
+
+.xp-bar {
+  background: #070b0c;
+  border: 1px solid #3b433f;
+  box-shadow: inset 0 2px 4px #000;
+}

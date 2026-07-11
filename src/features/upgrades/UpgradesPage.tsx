@@ -1,5 +1,6 @@
 import { useState, type CSSProperties } from "react";
 import { Link } from "react-router-dom";
+import "./UpgradesPage.css";
 import { demoContent } from "../../content";
 import { ninjas } from "../../content/demoContent";
 import type { EquipmentDefinition } from "../../domain/models";

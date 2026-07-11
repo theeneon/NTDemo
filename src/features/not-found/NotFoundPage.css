@@ -1,0 +1,43 @@
+/* Not-found route. */
+.not-found-page h1 {
+  max-width: 740px;
+  margin: 0;
+  font-family: Georgia, serif;
+  font-weight: 500;
+  line-height: 0.98;
+}
+
+.not-found-page {
+  min-height: calc(100vh - 240px);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  max-width: 700px;
+  margin: auto;
+}
+
+.not-found-code {
+  color: #dc5a3a;
+  font-family: Georgia, serif;
+  font-size: 90px;
+  line-height: 1;
+  opacity: 0.2;
+}
+
+.not-found-page > p:nth-of-type(2) {
+  color: #6d747e;
+}
+
+.not-found-page .primary-button {
+  margin-top: 12px;
+}
+
+.not-found-page h1 {
+  color: #f2e2bd;
+  font-size: clamp(38px, 4.7vw, 66px);
+  letter-spacing: -0.035em;
+  text-shadow:
+    0 3px 3px #000,
+    0 0 22px rgba(216, 168, 68, 0.1);
+}

@@ -1,0 +1,138 @@
+/* Shared first-run guidance. */
+.first-run-guide {
+  display: grid;
+  grid-template-columns: auto minmax(220px, 1fr) auto auto;
+  align-items: center;
+  gap: 14px;
+  padding: 13px 15px;
+  color: #d9d0bb;
+  background:
+    linear-gradient(90deg, rgba(126, 72, 32, 0.22), transparent 38%),
+    linear-gradient(180deg, #263333, #111819);
+  border: 2px ridge #75572f;
+  border-radius: 4px;
+  box-shadow: inset 0 0 17px #070a0b;
+}
+
+.first-run-seal {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  color: #f0cf78;
+  background: radial-gradient(circle, #763b21, #24120c);
+  border: 2px double #b1843e;
+  border-radius: 50%;
+}
+
+.first-run-seal svg {
+  width: 21px;
+  height: 21px;
+}
+
+.first-run-guide small,
+.first-run-guide strong {
+  display: block;
+}
+
+.first-run-guide small {
+  color: #b99e65;
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.first-run-guide strong {
+  margin: 2px 0;
+  color: #f0ddb1;
+  font-family: var(--font-display);
+  font-size: 17px;
+}
+
+.first-run-guide p {
+  margin: 0;
+  color: #97a49d;
+  font-size: 9px;
+}
+
+.first-run-guide ol {
+  display: flex;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.first-run-guide li {
+  display: grid;
+  gap: 2px;
+  place-items: center;
+  color: #69766f;
+  font-size: 6px;
+  text-transform: uppercase;
+}
+
+.first-run-guide li span {
+  display: grid;
+  width: 22px;
+  height: 22px;
+  place-items: center;
+  color: #8b948b;
+  background: #111718;
+  border: 1px solid #485148;
+  border-radius: 50%;
+}
+
+.first-run-guide li.current span {
+  color: #ffe1a0;
+  background: #78331f;
+  border-color: #c18c41;
+}
+
+.first-run-guide li.complete span {
+  color: #d9f1df;
+  background: #27553d;
+  border-color: #5c8a6d;
+}
+
+.first-run-guide > button {
+  padding: 7px 9px;
+  color: #aa9e82;
+  font-size: 8px;
+  background: #111718;
+  border: 1px solid #5f4b2d;
+  cursor: pointer;
+}
+
+@media (max-width: 1050px) {
+  .first-run-guide {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+  }
+
+  .first-run-guide ol {
+    grid-column: 2 / -1;
+    grid-row: 2;
+  }
+}
+
+@media (max-width: 620px) {
+  .first-run-guide {
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 9px;
+  }
+
+  .first-run-guide ol,
+  .first-run-guide > button {
+    grid-column: 1 / -1;
+  }
+
+  .first-run-guide ol {
+    grid-row: auto;
+    justify-content: center;
+  }
+
+  .first-run-guide > button {
+    min-height: 34px;
+  }
+}

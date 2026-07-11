@@ -1,4 +1,5 @@
 import { Icon } from "./Icon";
+import "./FirstRunGuide.css";
 import { usePlayerStore, type FirstRunStep } from "../../stores/playerStore";
 
 const steps: Exclude<FirstRunStep, "complete">[] = ["squad", "battle", "rewards", "upgrade"];

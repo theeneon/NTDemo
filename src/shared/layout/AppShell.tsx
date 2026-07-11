@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { NavLink, Outlet, useLocation } from "react-router-dom";
+import "./AppShell.css";
 import { usePlayerStore } from "../../stores/playerStore";
 import { usePresentationStore } from "../../stores/presentationStore";
 import { Icon, type IconName } from "../ui/Icon";

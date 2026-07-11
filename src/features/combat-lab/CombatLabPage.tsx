@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import "./CombatLabPage.css";
 import { demoContent } from "../../content";
 import type { BattleEvent } from "../../domain/models";
 import { formatBattleLog, simulateBattle } from "../../engine";

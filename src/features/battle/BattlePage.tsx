@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import "./BattlePage.css";
 import { demoContent } from "../../content";
 import type { BattleEvent, BattleUnitId, FormationSlot, NinjaId } from "../../domain/models";
 import { formatBattleLog, simulateBattle } from "../../engine";

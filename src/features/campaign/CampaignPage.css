@@ -1,0 +1,560 @@
+/* Campaign route. */
+.mission-panel {
+  padding: clamp(18px, 2.6vw, 28px);
+}
+
+.campaign-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(310px, 0.6fr);
+  gap: 15px;
+  align-items: stretch;
+}
+
+.campaign-map {
+  position: relative;
+  min-height: 590px;
+  overflow: hidden;
+}
+
+.campaign-map::before,
+.campaign-map::after {
+  position: absolute;
+  content: "";
+  border: 1px solid rgba(74, 91, 77, 0.12);
+  border-radius: 50%;
+}
+
+.campaign-map::before {
+  width: 350px;
+  height: 210px;
+  top: -80px;
+  right: -90px;
+}
+
+.campaign-map::after {
+  width: 420px;
+  height: 280px;
+  bottom: -170px;
+  left: -100px;
+}
+
+.map-watermark {
+  position: absolute;
+  right: 7%;
+  bottom: 3%;
+  font-family: Georgia, serif;
+  font-size: 180px;
+}
+
+.map-path {
+  position: absolute;
+  top: 49%;
+  right: 11%;
+  left: 10%;
+  height: 3px;
+  background: repeating-linear-gradient(90deg, #8d8a7f 0 7px, transparent 7px 14px);
+  transform: rotate(-16deg);
+}
+
+.encounter-node {
+  position: absolute;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+}
+
+.node-1 {
+  left: 9%;
+  bottom: 12%;
+}
+
+.node-2 {
+  left: 24%;
+  bottom: 31%;
+}
+
+.node-3 {
+  left: 45%;
+  bottom: 38%;
+}
+
+.node-4 {
+  right: 22%;
+  top: 27%;
+}
+
+.node-5 {
+  right: 6%;
+  top: 10%;
+}
+
+.node-marker {
+  width: 48px;
+  height: 48px;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  border: 5px solid #fbf8f1;
+  border-radius: 50%;
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.node-marker svg {
+  width: 18px;
+  height: 18px;
+}
+
+.encounter-node div {
+  display: none;
+  min-width: 140px;
+  padding: 9px 11px;
+  box-shadow: 0 8px 18px rgba(31, 38, 48, 0.07);
+}
+
+.encounter-node:hover div,
+.node-available div,
+.encounter-node small,
+.encounter-node strong,
+.encounter-node div span {
+  display: block;
+}
+
+.encounter-node small {
+  font-size: 7px;
+  text-transform: uppercase;
+}
+
+.encounter-node strong {
+  font-family: Georgia, serif;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.encounter-node div span {
+  font-size: 8px;
+}
+
+.node-complete .node-marker,
+.node-available .node-marker {
+  color: white;
+}
+
+.map-legend {
+  position: absolute;
+  bottom: 14px;
+  left: 16px;
+  display: flex;
+  gap: 14px;
+  padding: 8px 10px;
+  background: rgba(251, 248, 241, 0.85);
+  border-radius: 7px;
+}
+
+.map-legend span {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: #7a8089;
+  font-size: 8px;
+}
+
+.map-legend i {
+  width: 7px;
+  height: 7px;
+  background: #b0aa9e;
+  border-radius: 50%;
+}
+
+.map-legend i.complete {
+  background: #397d6a;
+}
+
+.map-legend i.available {
+  background: #dc5a3a;
+}
+
+.mission-panel {
+  display: flex;
+  flex-direction: column;
+}
+
+.mission-panel h2 {
+  margin: 0;
+  font-family: Georgia, serif;
+  font-size: 33px;
+  font-weight: 500;
+  letter-spacing: -0.04em;
+}
+
+.mission-panel > p:nth-of-type(2) {
+  font-size: 11px;
+  line-height: 1.7;
+}
+
+.enemy-preview {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  margin: 14px 0;
+}
+
+.enemy-preview span {
+  display: grid;
+  place-items: center;
+  padding: 8px 4px;
+  border: 1px solid #d9d1c2;
+  border-radius: 8px;
+}
+
+.enemy-preview i {
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  font-family: Georgia, serif;
+  font-style: normal;
+}
+
+.enemy-preview small {
+  margin-top: 5px;
+  color: #7f858e;
+  font-size: 7px;
+}
+
+.mission-facts {
+  display: grid;
+  gap: 0;
+  margin: 5px 0 20px;
+}
+
+.mission-facts div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid #ded6c7;
+}
+
+.mission-facts dt {
+  font-size: 9px;
+}
+
+.mission-facts dd {
+  margin: 0;
+  font-size: 10px;
+  font-weight: 850;
+}
+
+.dungeon-card {
+  display: grid;
+  grid-template-columns: 30px 1fr 18px;
+  align-items: center;
+  gap: 10px;
+  margin-top: auto;
+  padding: 13px;
+}
+
+.dungeon-card > svg {
+  width: 24px;
+}
+
+.dungeon-card > svg:last-child {
+  width: 15px;
+}
+
+.dungeon-card span,
+.dungeon-card strong,
+.dungeon-card small {
+  display: block;
+}
+
+.dungeon-card span {
+  color: #e8a08c;
+  font-size: 7px;
+  text-transform: uppercase;
+}
+
+.dungeon-card strong {
+  color: white;
+  font-size: 10px;
+}
+
+.dungeon-card small {
+  font-size: 8px;
+}
+
+@media (max-width: 1180px) {
+  .campaign-layout {
+    grid-template-columns: 1fr;
+  }
+  .mission-panel {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0 24px;
+  }
+  .mission-panel > .eyebrow,
+  .mission-panel > h2,
+  .mission-panel > p {
+    grid-column: 1;
+  }
+  .enemy-preview,
+  .mission-facts {
+    grid-column: 2;
+  }
+  .enemy-preview {
+    grid-row: 1 / 4;
+    margin: 0;
+  }
+  .mission-facts {
+    grid-row: 4 / 7;
+  }
+  .mission-panel > .primary-button {
+    grid-column: 1;
+  }
+  .dungeon-card {
+    grid-column: 2;
+    grid-row: 7;
+    margin-top: 0;
+  }
+}
+
+.encounter-node {
+  padding: 0;
+  color: inherit;
+  text-align: left;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+}
+
+.encounter-node:disabled {
+  cursor: not-allowed;
+}
+
+.encounter-node > span:last-child {
+  display: none;
+  min-width: 140px;
+  padding: 9px 11px;
+  color: #2b2015;
+  background: #ddc994;
+  border: 2px ridge #6f4d25;
+  border-radius: 2px;
+  box-shadow: 0 8px 18px rgba(31, 38, 48, 0.2);
+}
+
+.encounter-node:hover > span:last-child,
+.encounter-node:focus-visible > span:last-child,
+.node-available > span:last-child,
+.node-selected > span:last-child,
+.encounter-node > span:last-child > small,
+.encounter-node > span:last-child > strong,
+.encounter-node > span:last-child > span {
+  display: block;
+}
+
+.encounter-node > span:last-child > span,
+.encounter-node > span:last-child > small {
+  color: #725d3e;
+}
+
+.node-selected .node-marker {
+  outline: 3px solid #e4c778;
+  outline-offset: 4px;
+}
+
+.dungeon-card {
+  width: 100%;
+  color: #929baa;
+  text-align: left;
+  cursor: pointer;
+}
+
+.dungeon-card.selected {
+  border-color: #d7b75f;
+  box-shadow:
+    inset 0 0 15px #050708,
+    0 0 0 2px rgba(215, 183, 95, 0.2);
+}
+
+.campaign-summon-link {
+  display: grid;
+  grid-template-columns: 28px 1fr 16px;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+  padding: 11px 13px;
+  color: #d9c078;
+  text-decoration: none;
+  background: linear-gradient(180deg, #30271c, #15130f);
+  border: 1px solid #70552c;
+  border-radius: 3px;
+}
+
+.campaign-summon-link svg {
+  width: 20px;
+}
+
+.campaign-summon-link span,
+.campaign-summon-link strong,
+.campaign-summon-link small {
+  display: block;
+}
+
+.campaign-summon-link small {
+  color: #93866b;
+  font-size: 8px;
+}
+
+@media (max-width: 620px) {
+  .encounter-node > span:last-child {
+    display: none !important;
+  }
+
+  .campaign-summon-link {
+    margin-top: 12px;
+  }
+}
+
+@media (max-width: 620px) {
+  .campaign-map {
+    min-height: 540px;
+  }
+  .encounter-node div {
+    display: none !important;
+  }
+  .node-marker {
+    width: 44px;
+    height: 44px;
+  }
+  .node-1 {
+    left: 7%;
+  }
+  .node-2 {
+    left: 24%;
+  }
+  .node-3 {
+    left: 45%;
+  }
+  .node-4 {
+    right: 19%;
+  }
+  .node-5 {
+    right: 5%;
+  }
+  .mission-panel {
+    display: block;
+  }
+  .enemy-preview,
+  .mission-facts {
+    margin-block: 14px;
+  }
+  .dungeon-card {
+    margin-top: 15px;
+  }
+}
+
+.mission-panel {
+  color: #e5dac0;
+  background: linear-gradient(180deg, rgba(41, 49, 48, 0.98), rgba(15, 21, 22, 0.99)), #161d1e;
+  border: 2px ridge #70552f;
+  border-radius: 6px;
+  box-shadow:
+    inset 0 0 25px rgba(0, 0, 0, 0.46),
+    0 7px 14px rgba(0, 0, 0, 0.35);
+}
+
+.campaign-map {
+  background:
+    linear-gradient(rgba(35, 41, 32, 0.22), rgba(12, 17, 17, 0.45)),
+    repeating-linear-gradient(115deg, #8d7b55 0 1px, #b29b6d 2px 52px, #a58d60 53px 55px);
+  border: 5px double #79562d;
+  border-radius: 4px;
+  box-shadow:
+    inset 0 0 70px #2c2418,
+    0 7px 16px #000;
+  filter: sepia(0.16);
+}
+
+.map-watermark {
+  color: rgba(52, 35, 20, 0.15);
+}
+
+.node-marker {
+  color: #312317;
+  background: radial-gradient(circle at 35% 30%, #e6cc88, #8b6731);
+  border-color: #392315;
+  box-shadow:
+    0 0 0 2px #c29a4b,
+    0 5px 9px #2a190d;
+}
+
+.node-complete .node-marker {
+  background: radial-gradient(circle at 35% 30%, #74c09d, #24664f);
+}
+
+.node-available .node-marker {
+  background: radial-gradient(circle at 35% 30%, #dc6944, #74261d);
+  box-shadow:
+    0 0 0 3px #e0b553,
+    0 0 20px rgba(213, 126, 49, 0.6);
+}
+
+.encounter-node div {
+  color: #2b2015;
+  background: #ddc994;
+  border: 2px ridge #6f4d25;
+  border-radius: 2px;
+}
+
+.encounter-node small,
+.encounter-node div span {
+  color: #725d3e;
+}
+
+.mission-panel h2 {
+  color: #f0dba8;
+  text-shadow: 0 2px #000;
+}
+
+.mission-panel > p:nth-of-type(2) {
+  color: #a5b0a9;
+}
+
+.enemy-preview span {
+  background: #111719;
+  border-color: #59472e;
+}
+
+.enemy-preview i {
+  color: #e2a59b;
+  background: radial-gradient(circle, #743d34, #2b1816);
+  border: 2px solid #8f5b42;
+}
+
+.mission-facts div {
+  border-bottom-color: #4c4432;
+}
+
+.mission-facts dt {
+  color: #8e978f;
+}
+
+.mission-facts dd {
+  color: #e4c778;
+}
+
+.dungeon-card {
+  background: linear-gradient(180deg, #202c30, #0c1215);
+  border: 1px solid #66512e;
+  border-radius: 3px;
+  box-shadow: inset 0 0 15px #050708;
+}
+
+@media (max-width: 900px) {
+  .mission-panel {
+    background: linear-gradient(180deg, rgba(39, 48, 47, 0.99), rgba(13, 19, 20, 0.99));
+  }
+}

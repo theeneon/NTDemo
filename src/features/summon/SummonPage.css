@@ -1,0 +1,238 @@
+/* Summon route. */
+.summon-page {
+  width: min(100%, 1180px);
+  min-height: calc(100vh - 210px);
+  display: flex;
+  flex-direction: column;
+  margin: 0 auto;
+}
+.summon-page > header {
+  display: flex;
+  justify-content: space-between;
+  font-size: 9px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+.summon-page > header a {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+}
+.summon-stage {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  gap: clamp(35px, 8vw, 100px);
+  padding: 30px clamp(10px, 5vw, 60px);
+}
+.summon-rings {
+  position: relative;
+  width: min(100%, 420px);
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  margin: auto;
+  border-radius: 50%;
+}
+.summon-rings::before,
+.summon-rings::after {
+  position: absolute;
+  content: "";
+  border: 1px dashed #9f927d;
+  border-radius: 50%;
+}
+.summon-rings::before {
+  inset: 15%;
+}
+.summon-rings::after {
+  inset: 28%;
+}
+.summon-rings > i {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  background: #dc5a3a;
+  border-radius: 50%;
+  box-shadow: 0 0 0 8px rgba(220, 90, 58, 0.1);
+}
+.summon-rings > i:nth-child(1) {
+  top: 5%;
+}
+.summon-rings > i:nth-child(2) {
+  right: 8%;
+  bottom: 21%;
+  background: #51a68d;
+}
+.summon-rings > i:nth-child(3) {
+  bottom: 9%;
+  left: 16%;
+  background: #8a83b8;
+}
+.summon-rings > span {
+  width: 120px;
+  height: 120px;
+  display: grid;
+  place-items: center;
+  border: 14px solid #e6ded0;
+  border-radius: 50%;
+  font-family: Georgia, serif;
+  font-size: 38px;
+}
+.summon-copy h1 {
+  margin: 0;
+  font-family: Georgia, serif;
+  font-size: clamp(42px, 5vw, 68px);
+  font-weight: 500;
+  letter-spacing: -0.052em;
+  line-height: 1;
+}
+.summon-copy > p:nth-of-type(2) {
+  max-width: 500px;
+  font-size: 12px;
+  line-height: 1.7;
+}
+.odds-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  margin: 23px 0;
+  border-top: 1px solid #d5cdbc;
+  border-bottom: 1px solid #d5cdbc;
+}
+.odds-row span {
+  padding: 12px;
+  border-right: 1px solid #d5cdbc;
+}
+.odds-row span:first-child {
+  padding-left: 0;
+}
+.odds-row span:last-child {
+  border-right: 0;
+}
+.odds-row small,
+.odds-row strong {
+  display: block;
+}
+.odds-row small {
+  font-size: 8px;
+  text-transform: uppercase;
+}
+.odds-row strong {
+  font-family: Georgia, serif;
+  font-size: 20px;
+  font-weight: 500;
+}
+.summon-button {
+  min-width: 190px;
+}
+.summon-note {
+  display: block;
+  margin-top: 10px;
+  font-size: 8px;
+}
+.summon-footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  padding-top: 16px;
+  border-top: 1px solid #d5cdbc;
+  font-size: 8px;
+}
+@media (max-width: 900px) {
+  .summon-stage {
+    grid-template-columns: 1fr;
+    text-align: center;
+  }
+  .summon-rings {
+    width: min(70vw, 330px);
+  }
+  .summon-copy > p:nth-of-type(2) {
+    margin-inline: auto;
+  }
+}
+.summon-stage-revealed .summon-rings {
+  filter: saturate(1.25);
+}
+.summon-result-avatar {
+  width: 112px;
+  margin: 4px auto 10px;
+}
+@media (max-width: 620px) {
+  .summon-page {
+    min-height: auto;
+  }
+  .summon-stage {
+    padding-inline: 0;
+  }
+  .summon-copy h1 {
+    font-size: 43px;
+  }
+  .summon-footer {
+    flex-direction: column;
+    gap: 4px;
+  }
+}
+.summon-page {
+  color: #e9ddc2;
+}
+.summon-page > header {
+  color: #a89b81;
+  border-bottom: 1px solid #58452b;
+}
+.summon-rings {
+  background: radial-gradient(
+    circle,
+    rgba(141, 62, 39, 0.28),
+    rgba(12, 18, 20, 0.4) 50%,
+    #0c1113 71%
+  );
+  border: 3px double #c69a47;
+  box-shadow:
+    inset 0 0 0 35px rgba(27, 35, 35, 0.45),
+    inset 0 0 50px #000,
+    0 0 35px rgba(198, 154, 71, 0.18);
+}
+.summon-rings::before,
+.summon-rings::after {
+  border-color: #9d7837;
+}
+.summon-rings > span {
+  color: #ffe3a0;
+  background: radial-gradient(circle, #7e2d21, #25100d);
+  border-color: #2b1a10;
+  box-shadow:
+    0 0 0 3px #c29445,
+    0 0 28px rgba(199, 102, 50, 0.48);
+}
+.summon-copy h1 {
+  color: #f2dfb0;
+  text-shadow: 0 3px #000;
+}
+.summon-copy > p:nth-of-type(2) {
+  color: #a8b2ab;
+}
+.odds-row {
+  border-color: #57462e;
+}
+.odds-row span {
+  border-right-color: #57462e;
+}
+.odds-row small,
+.summon-note,
+.summon-footer {
+  color: #8f978e;
+}
+.odds-row strong {
+  color: #edca75;
+}
+.summon-footer {
+  border-top-color: #57462e;
+}
+@media (max-width: 620px) {
+  .summon-rings {
+    box-shadow:
+      inset 0 0 0 24px rgba(27, 35, 35, 0.45),
+      inset 0 0 40px #000,
+      0 0 25px rgba(198, 154, 71, 0.18);
+  }
+}
