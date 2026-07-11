@@ -11,7 +11,7 @@ describe("application routes", () => {
       </MemoryRouter>,
     );
     expect(
-      await screen.findByRole("heading", { name: "Choose your next formation." }),
+      screen.getByRole("heading", { name: "Unlock your next formation." }),
     ).toBeInTheDocument();
     expect(screen.getByRole("navigation", { name: "Game screens" })).toBeInTheDocument();
   });
