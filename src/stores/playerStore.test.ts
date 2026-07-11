@@ -21,6 +21,7 @@ describe("persisted player progression", () => {
   it("constructs a unique four-ninja squad from an empty first-run formation", () => {
     const store = usePlayerStore.getState();
     expect(store.squadIds).toEqual([]);
+    demoDefaultSquadIds.forEach((id) => store.unlockNinja(id));
     demoDefaultSquadIds.forEach((id) => store.addToSquad(id));
     store.addToSquad("reed");
     store.addToSquad("flint");
@@ -34,16 +35,17 @@ describe("persisted player progression", () => {
       0,
     );
 
-    expect(migrated.saveVersion).toBe(3);
+    expect(migrated.saveVersion).toBe(4);
     expect(migrated.coins).toBe(777);
     expect(migrated.squadIds).toEqual(["reed", "ember"]);
     expect(migrated.ninjaProgress.reed?.level).toBe(3);
     expect(migrated.ownedEquipment["equipment.scout-wraps"]).toBe(1);
-    expect(migrated.summonAvailable).toBe(true);
+    expect(migrated.unlockedNinjaIds).toHaveLength(8);
   });
 
   it("applies dungeon rewards and experience exactly once", () => {
     const store = usePlayerStore.getState();
+    demoDefaultSquadIds.forEach((id) => store.unlockNinja(id));
     demoDefaultSquadIds.forEach((id) => store.addToSquad(id));
     expect(store.startBattle("encounter.underground-shrine")).toBe(true);
     const active = usePlayerStore.getState().activeBattle!;
@@ -78,6 +80,7 @@ describe("persisted player progression", () => {
 
   it("turns earned XP and an equipment reinforcement into persistent power", () => {
     const initial = usePlayerStore.getState();
+    initial.unlockNinja("reed");
     const reed = initial.ninjaProgress.reed!;
     usePlayerStore.setState({
       ninjaProgress: {
@@ -110,6 +113,7 @@ describe("persisted player progression", () => {
 
   it("unlocks campaign missions in order after a victory", () => {
     const store = usePlayerStore.getState();
+    demoDefaultSquadIds.forEach((id) => store.unlockNinja(id));
     demoDefaultSquadIds.forEach((id) => store.addToSquad(id));
 
     expect(isEncounterUnlocked("encounter.border-watch", [])).toBe(true);
@@ -140,22 +144,23 @@ describe("persisted player progression", () => {
     ).toBe(true);
   });
 
-  it("persists one deterministic free summon and restores it on reset", () => {
+  it("requires campaign clears before a character can be claimed", () => {
     const store = usePlayerStore.getState();
-    const result = store.performFreeSummon();
-
-    expect(result).toBeTruthy();
-    expect(usePlayerStore.getState()).toMatchObject({
-      summonAvailable: false,
-      summonedNinjaId: result,
-    });
-    expect(store.performFreeSummon()).toBe(result);
-    expect(localStorage.getItem(PLAYER_SAVE_STORAGE_KEY)).toContain(result);
+    expect(store.unlockNinja("reed")).toBe(true);
+    expect(store.unlockNinja("flint")).toBe(false);
+    const startingCoins = usePlayerStore.getState().coins;
+    expect(store.purchaseNinja("flint")).toBe(true);
+    expect(usePlayerStore.getState().coins).toBe(startingCoins - 300);
+    expect(store.purchaseNinja("flint")).toBe(false);
+    expect(usePlayerStore.getState().unlockedNinjaIds).toEqual(["reed", "flint"]);
 
     store.resetSave();
-    expect(usePlayerStore.getState()).toMatchObject({
-      summonAvailable: true,
-      summonedNinjaId: null,
-    });
+    usePlayerStore.setState({ completedEncounterIds: ["encounter.border-watch"] });
+    expect(store.unlockNinja("flint")).toBe(true);
+    expect(usePlayerStore.getState().unlockedNinjaIds).toEqual(["flint"]);
+    expect(localStorage.getItem(PLAYER_SAVE_STORAGE_KEY)).toContain("flint");
+
+    store.resetSave();
+    expect(usePlayerStore.getState().unlockedNinjaIds).toEqual([]);
   });
 });

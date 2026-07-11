@@ -2,7 +2,10 @@ import { expect, test } from "@playwright/test";
 
 test("navigates the Phase 1 shell", async ({ page }) => {
   await page.goto("/roster");
-  await expect(page.getByRole("heading", { name: "Choose your next formation." })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Unlock your next formation." })).toBeVisible();
+  for (const ninja of ["Reed", "Ember", "Mist", "Kite"]) {
+    await page.getByRole("button", { name: new RegExp(`Recruit ${ninja}`) }).click();
+  }
   await page.getByRole("link", { name: /Build squad/ }).click();
   await expect(page).toHaveURL(/\/squad$/);
   await expect(page.getByRole("heading", { name: "Build a balanced squad." })).toBeVisible();
@@ -97,6 +100,10 @@ test("honors reduced-motion battle playback", async ({ page }) => {
 });
 
 test("completes and persists the Phase 5 vertical slice", async ({ page }) => {
+  await page.goto("/roster");
+  for (const ninja of ["Reed", "Ember", "Mist", "Kite"]) {
+    await page.getByRole("button", { name: new RegExp(`Recruit ${ninja}`) }).click();
+  }
   await page.goto("/squad");
   await expect(page.getByRole("region", { name: "First expedition guide" })).toBeVisible();
   for (const ninja of ["Reed", "Ember", "Mist", "Kite"]) {
@@ -129,7 +136,11 @@ test("completes and persists the Phase 5 vertical slice", async ({ page }) => {
   await expect(page.getByText("Lv 4 · guard", { exact: true })).toBeVisible();
 });
 
-test("unlocks the next campaign mission and completes the free summon", async ({ page }) => {
+test("unlocks the next campaign mission and its character reward", async ({ page }) => {
+  await page.goto("/roster");
+  for (const ninja of ["Reed", "Ember", "Mist", "Kite"]) {
+    await page.getByRole("button", { name: new RegExp(`Recruit ${ninja}`) }).click();
+  }
   await page.goto("/squad");
   for (const ninja of ["Reed", "Ember", "Mist", "Kite"]) {
     await page.getByRole("button", { name: `Add ${ninja}` }).click();
@@ -143,11 +154,12 @@ test("unlocks the next campaign mission and completes the free summon", async ({
   await page.getByRole("link", { name: "Next mission unlocked" }).click();
   await expect(page.getByRole("button", { name: /Bamboo Pass/ })).toBeEnabled();
 
-  await page.getByRole("link", { name: /Free summon ready/ }).click();
-  await page.getByRole("button", { name: "Use free summon" }).click();
-  await expect(page.getByRole("heading", { name: /answered the call/ })).toBeVisible();
-  const result = await page.getByRole("heading", { name: /answered the call/ }).textContent();
+  await page.getByRole("link", { name: /5 \/ 8 ninjas unlocked/ }).click();
+  await expect(
+    page.locator(".ninja-card").filter({ hasText: "Flint" }).getByText("Unlocked"),
+  ).toBeVisible();
   await page.reload();
-  await expect(page.getByRole("heading", { name: result ?? "" })).toBeVisible();
-  await expect(page.getByText("Summon complete · saved")).toBeVisible();
+  await expect(
+    page.locator(".ninja-card").filter({ hasText: "Flint" }).getByText("Unlocked"),
+  ).toBeVisible();
 });

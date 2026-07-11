@@ -54,7 +54,6 @@ const navigation: {
     hotkey: "U",
     mobile: true,
   },
-  { to: "/summon", label: "Spirit Gate", icon: "summon", hotkey: "G" },
   { to: "/content-lab", label: "Content Codex", icon: "spark", hotkey: "C" },
   { to: "/combat-lab", label: "Combat Forge", icon: "battle", hotkey: "F" },
 ];

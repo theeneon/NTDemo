@@ -181,7 +181,7 @@ export function ContentLabPage() {
             ))}
           </div>
           <p>
-            The same seed produces this exact sequence in tests, summon selection, loot tables, and
+            The same seed produces this exact sequence in tests, combat outcomes, loot tables, and
             future combat scenarios.
           </p>
         </section>

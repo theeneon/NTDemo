@@ -23,12 +23,30 @@ export function UpgradesPage() {
   const setSelected = usePlayerStore((state) => state.setSelectedNinja);
   const ninjaProgress = usePlayerStore((state) => state.ninjaProgress);
   const equipmentLevels = usePlayerStore((state) => state.equipmentLevels);
+  const unlockedNinjaIds = usePlayerStore((state) => state.unlockedNinjaIds);
   const ownedEquipment = usePlayerStore((state) => state.ownedEquipment);
   const coins = usePlayerStore((state) => state.coins);
   const levelUpNinja = usePlayerStore((state) => state.levelUpNinja);
   const equipItem = usePlayerStore((state) => state.equipItem);
   const upgradeEquipment = usePlayerStore((state) => state.upgradeEquipment);
-  const ninja = ninjas.find((item) => item.id === selectedId) ?? ninjas[0]!;
+  const unlockedNinjas = ninjas.filter((item) => unlockedNinjaIds.includes(item.id));
+  const ninja = unlockedNinjas.find((item) => item.id === selectedId) ?? unlockedNinjas[0];
+  if (!ninja) {
+    return (
+      <div className="page-stack">
+        <PageHeader
+          eyebrow="Training grounds"
+          title="Unlock a ninja to begin training."
+          description="Claim your founding team from the roster before spending experience or equipping gear."
+          action={
+            <Link className="primary-button" to="/roster">
+              Open roster <Icon name="arrow" />
+            </Link>
+          }
+        />
+      </div>
+    );
+  }
   const progress = ninjaProgress[ninja.id]!;
   const definition = demoContent.ninjas.find(({ id }) => id === `ninja.${ninja.id}`)!;
   const power = calculateNinjaPower(ninja.id, progress, equipmentLevels);
@@ -56,7 +74,7 @@ export function UpgradesPage() {
       <div className="upgrade-layout">
         <aside className="ninja-selector">
           <p className="eyebrow">Select ninja</p>
-          {ninjas.map((item) => {
+          {unlockedNinjas.map((item) => {
             const itemProgress = ninjaProgress[item.id]!;
             return (
               <button

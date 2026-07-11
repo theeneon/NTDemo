@@ -16,9 +16,12 @@ export function SquadPage() {
   const clearSquad = usePlayerStore((state) => state.clearSquad);
   const ninjaProgress = usePlayerStore((state) => state.ninjaProgress);
   const equipmentLevels = usePlayerStore((state) => state.equipmentLevels);
+  const unlockedNinjaIds = usePlayerStore((state) => state.unlockedNinjaIds);
   const setFirstRunStep = usePlayerStore((state) => state.setFirstRunStep);
   const squad = squadIds.map((id) => ninjas.find((ninja) => ninja.id === id)).filter(Boolean);
-  const available = ninjas.filter((ninja) => !squadIds.includes(ninja.id));
+  const available = ninjas.filter(
+    (ninja) => unlockedNinjaIds.includes(ninja.id) && !squadIds.includes(ninja.id),
+  );
   const power = squad.reduce(
     (sum, ninja) =>
       sum + (ninja ? calculateNinjaPower(ninja.id, ninjaProgress[ninja.id]!, equipmentLevels) : 0),

@@ -183,7 +183,6 @@ export type PlayerProfile = {
   saveVersion: number;
   profileId: string;
   coins: number;
-  summonAvailable: boolean;
   ownedNinjas: Record<NinjaId, OwnedNinjaState>;
   ownedEquipment: Partial<Record<EquipmentId, number>>;
   squads: SquadState[];

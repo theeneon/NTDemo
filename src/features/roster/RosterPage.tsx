@@ -6,7 +6,12 @@ import { FirstRunGuide } from "../../shared/ui/FirstRunGuide";
 import { Icon } from "../../shared/ui/Icon";
 import { NinjaAvatar } from "../../shared/ui/NinjaAvatar";
 import { PageHeader } from "../../shared/ui/PageHeader";
-import { calculateNinjaPower, usePlayerStore } from "../../stores/playerStore";
+import {
+  calculateNinjaPower,
+  getNinjaUnlockCost,
+  getNinjaUnlockRequirement,
+  usePlayerStore,
+} from "../../stores/playerStore";
 
 type Filter = "All" | NinjaRole;
 const filters: Filter[] = ["All", "Striker", "Guard", "Support", "Control"];
@@ -17,8 +22,9 @@ export function RosterPage() {
   const setSelectedNinja = usePlayerStore((state) => state.setSelectedNinja);
   const ninjaProgress = usePlayerStore((state) => state.ninjaProgress);
   const equipmentLevels = usePlayerStore((state) => state.equipmentLevels);
-  const summonAvailable = usePlayerStore((state) => state.summonAvailable);
-  const summonedNinjaId = usePlayerStore((state) => state.summonedNinjaId);
+  const unlockedNinjaIds = usePlayerStore((state) => state.unlockedNinjaIds);
+  const coins = usePlayerStore((state) => state.coins);
+  const purchaseNinja = usePlayerStore((state) => state.purchaseNinja);
   const activeSquad = squadIds
     .map((id) => ninjas.find((ninja) => ninja.id === id))
     .filter((ninja): ninja is Ninja => Boolean(ninja));
@@ -36,9 +42,9 @@ export function RosterPage() {
   return (
     <div className="page-stack">
       <PageHeader
-        eyebrow="Village roster · 8 available"
-        title="Choose your next formation."
-        description="Every ninja brings a distinct tactical role. Levels, experience, equipment, and formation choices now persist between expeditions."
+        eyebrow={`Village roster · ${unlockedNinjaIds.length} of ${ninjas.length} unlocked`}
+        title="Unlock your next formation."
+        description="Spend gold to recruit any locked ninja, or earn the later characters by clearing their campaign missions. Levels, equipment, and formation choices persist between expeditions."
         action={
           <Link className="primary-button" to="/squad">
             Build squad <Icon name="arrow" />
@@ -64,14 +70,14 @@ export function RosterPage() {
           <strong>{roleCoverage} / 4</strong>
           <small>balanced formation</small>
         </div>
-        <Link to="/summon">
+        <Link to="/campaign">
           <Icon name="summon" />
           <span>
-            <strong>Free summon</strong>
+            <strong>Character unlocks</strong>
             <small>
-              {summonAvailable
-                ? "One demo recruit available"
-                : `${ninjas.find(({ id }) => id === summonedNinjaId)?.name ?? "Recruit"} summoned · saved`}
+              {unlockedNinjaIds.length === ninjas.length
+                ? "All ninjas claimed"
+                : "Clear missions to unlock more"}
             </small>
           </span>
           <Icon name="arrow" />
@@ -101,9 +107,12 @@ export function RosterPage() {
         <div className="ninja-grid">
           {visibleNinjas.map((ninja) => {
             const selected = squadIds.includes(ninja.id);
+            const unlocked = unlockedNinjaIds.includes(ninja.id);
+            const requirement = getNinjaUnlockRequirement(ninja.id);
+            const cost = getNinjaUnlockCost(ninja.id);
             return (
               <article
-                className="ninja-card"
+                className={`ninja-card ${unlocked ? "" : "ninja-card-locked"}`}
                 key={ninja.id}
                 style={{ "--card-accent": ninja.accent } as CSSProperties}
               >
@@ -115,7 +124,13 @@ export function RosterPage() {
                     <span className="squad-badge">
                       <Icon name="check" /> Squad
                     </span>
-                  ) : null}
+                  ) : unlocked ? (
+                    <span className="squad-badge">Unlocked</span>
+                  ) : (
+                    <span className="squad-badge squad-badge-locked">
+                      <Icon name="lock" /> Locked
+                    </span>
+                  )}
                 </div>
                 <NinjaAvatar ninja={ninja} size="lg" />
                 <div className="ninja-card-copy">
@@ -138,13 +153,32 @@ export function RosterPage() {
                     </strong>
                   </span>
                 </div>
-                <Link
-                  className="card-action"
-                  to="/upgrades"
-                  onClick={() => setSelectedNinja(ninja.id)}
-                >
-                  View details <Icon name="arrow" />
-                </Link>
+                {unlocked ? (
+                  <Link
+                    className="card-action"
+                    to="/upgrades"
+                    onClick={() => setSelectedNinja(ninja.id)}
+                  >
+                    View details <Icon name="arrow" />
+                  </Link>
+                ) : (
+                  <button
+                    className="card-action card-action-button"
+                    type="button"
+                    disabled={coins < cost}
+                    onClick={() => purchaseNinja(ninja.id)}
+                  >
+                    {coins < cost
+                      ? `Need ${cost} gold for ${ninja.name}`
+                      : `Recruit ${ninja.name} · ${cost} gold`}{" "}
+                    <Icon name="coin" />
+                  </button>
+                )}
+                {!unlocked && requirement ? (
+                  <small className="unlock-alternative">
+                    or clear the required campaign mission
+                  </small>
+                ) : null}
               </article>
             );
           })}

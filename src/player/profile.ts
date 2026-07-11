@@ -18,7 +18,6 @@ export function createDemoPlayerProfile(content: GameContent): PlayerProfile {
     saveVersion: 1,
     profileId: "profile.local-demo",
     coins: 1_240,
-    summonAvailable: true,
     ownedNinjas,
     ownedEquipment: { "equipment.scout-wraps": 1 },
     squads: [],

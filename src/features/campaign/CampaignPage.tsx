@@ -17,7 +17,7 @@ export function CampaignPage() {
   const ninjaProgress = usePlayerStore((state) => state.ninjaProgress);
   const equipmentLevels = usePlayerStore((state) => state.equipmentLevels);
   const completedEncounterIds = usePlayerStore((state) => state.completedEncounterIds);
-  const summonAvailable = usePlayerStore((state) => state.summonAvailable);
+  const unlockedNinjaIds = usePlayerStore((state) => state.unlockedNinjaIds);
   const startBattle = usePlayerStore((state) => state.startBattle);
   const firstAvailable =
     campaignEncounters.find(
@@ -174,11 +174,11 @@ export function CampaignPage() {
             </span>
             <Icon name={completedEncounterIds.includes(dungeon.id) ? "check" : "arrow"} />
           </button>
-          <Link className="campaign-summon-link" to="/summon">
+          <Link className="campaign-summon-link" to="/roster">
             <Icon name="summon" />
             <span>
-              <strong>{summonAvailable ? "Free summon ready" : "Free summon claimed"}</strong>
-              <small>Seeded demo · no purchase flow</small>
+              <strong>{unlockedNinjaIds.length} / 8 ninjas unlocked</strong>
+              <small>Claim starters, then clear campaign missions for more</small>
             </span>
             <Icon name="arrow" />
           </Link>

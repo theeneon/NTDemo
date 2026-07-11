@@ -86,6 +86,22 @@ export function ResultsPage() {
             <p>{equipmentDrop ? "Added to inventory · Level 1" : "Seeded reward result"}</p>
           </div>
         </article>
+        {(report.unlockedNinjaIds?.length ?? 0) > 0 ? (
+          <article className="equipment-reward">
+            <span>
+              <Icon name="roster" />
+            </span>
+            <div>
+              <small>Character unlocked</small>
+              <strong>
+                {(report.unlockedNinjaIds ?? [])
+                  .map((id) => ninjas.find((ninja) => ninja.id === id)?.name ?? id)
+                  .join(", ")}
+              </strong>
+              <p>Ready to add to your squad</p>
+            </div>
+          </article>
+        ) : null}
       </section>
 
       <section className="result-progress">
