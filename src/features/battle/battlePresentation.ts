@@ -123,7 +123,7 @@ export function applyBattleEvent(
         rewards: {
           coins: event.coins,
           squadExperience: event.squadExperience,
-          ...(event.drop ? { drop: event.drop } : {}),
+          drops: event.drops,
         },
       };
     case "battleEnded":

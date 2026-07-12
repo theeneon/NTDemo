@@ -3,6 +3,7 @@ export { simulateBattle } from "./simulator";
 export type {
   BattleInput,
   BattleParticipant,
+  BattleRewardDrop,
   BattleResult,
   BattleRewards,
   BattleSide,

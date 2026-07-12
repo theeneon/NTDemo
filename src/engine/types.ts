@@ -27,6 +27,7 @@ export type BattleInput = Readonly<{
   encounterId: EncounterId;
   playerTeam: readonly BattleParticipant[];
   seed: Seed;
+  isFirstClear?: boolean;
   maximumTurns?: number;
   maximumPassiveTriggers?: number;
 }>;
@@ -54,14 +55,16 @@ export type RuntimeUnitSnapshot = Readonly<{
   defeated: boolean;
 }>;
 
+export type BattleRewardDrop = Readonly<{
+  kind: "equipment" | "coins";
+  contentId?: EquipmentId;
+  amount: number;
+}>;
+
 export type BattleRewards = Readonly<{
   coins: number;
   squadExperience: number;
-  drop?: Readonly<{
-    kind: "equipment" | "coins";
-    contentId?: EquipmentId;
-    amount: number;
-  }>;
+  drops: readonly BattleRewardDrop[];
 }>;
 
 export type BattleSummary = Readonly<{

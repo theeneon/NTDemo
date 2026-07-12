@@ -32,10 +32,14 @@ export function ResultsPage() {
   }
 
   const encounter = demoContent.encounters.find(({ id }) => id === report.encounterId)!;
-  const equipmentDrop =
-    report.drop?.kind === "equipment"
-      ? demoContent.equipment.find(({ id }) => id === report.drop?.contentId)
-      : undefined;
+  const equipmentDrops = report.drops
+    .filter((drop) => drop.kind === "equipment")
+    .map((drop) => demoContent.equipment.find(({ id }) => id === drop.contentId))
+    .filter((equipment) => equipment !== undefined);
+  const bonusCoins = report.drops.reduce(
+    (total, drop) => total + (drop.kind === "coins" ? drop.amount : 0),
+    0,
+  );
   const isVictory = report.outcome === "victory";
 
   return (
@@ -75,17 +79,28 @@ export function ResultsPage() {
             <p>Applied to all four ninjas</p>
           </div>
         </article>
-        <article className="equipment-reward">
-          <span>E</span>
-          <div>
-            <small>{report.drop?.kind === "coins" ? "Bonus cache" : "Equipment drop"}</small>
-            <strong>
-              {equipmentDrop?.name ??
-                (report.drop?.kind === "coins" ? `${report.drop.amount} bonus coins` : "No item")}
-            </strong>
-            <p>{equipmentDrop ? "Added to inventory · Level 1" : "Seeded reward result"}</p>
-          </div>
-        </article>
+        {equipmentDrops.map((equipment) => (
+          <article className="equipment-reward" key={equipment.id}>
+            <span>E</span>
+            <div>
+              <small>Equipment drop</small>
+              <strong>{equipment.name}</strong>
+              <p>Added to inventory · Level 1</p>
+            </div>
+          </article>
+        ))}
+        {bonusCoins > 0 ? (
+          <article className="equipment-reward">
+            <span>
+              <Icon name="coin" />
+            </span>
+            <div>
+              <small>Bonus cache</small>
+              <strong>{bonusCoins} bonus coins</strong>
+              <p>Seeded reward result</p>
+            </div>
+          </article>
+        ) : null}
         {(report.unlockedNinjaIds?.length ?? 0) > 0 ? (
           <article className="equipment-reward">
             <span>

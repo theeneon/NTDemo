@@ -50,6 +50,24 @@ describe("deterministic combat simulation", () => {
     expect(first.events.at(-2)?.type).toBe("rewardsCalculated");
   });
 
+  it("adds the guaranteed first-clear reward table to the regular rewards", () => {
+    const firstClear = simulateBattle(input({ isFirstClear: true }));
+    const replay = simulateBattle(input({ isFirstClear: false }));
+
+    expect(firstClear.outcome).toBe("victory");
+    expect(firstClear.rewards).toMatchObject({ coins: 175, squadExperience: 60 });
+    expect(firstClear.rewards?.drops).toContainEqual({
+      kind: "equipment",
+      contentId: "equipment.ember-kunai",
+      amount: 1,
+    });
+    expect(firstClear.rewards?.drops).toHaveLength(2);
+    expect(replay.rewards).toMatchObject({ coins: 100, squadExperience: 40 });
+    expect(replay.rewards?.drops).not.toContainEqual(
+      expect.objectContaining({ contentId: "equipment.ember-kunai" }),
+    );
+  });
+
   it("orders turns by timeline and deterministic tie breakers", () => {
     const result = simulateBattle(input({ maximumTurns: 1 }));
     const firstTurn = result.events.find((event) => event.type === "turnStarted");
