@@ -3,9 +3,9 @@ import { createJSONStorage, persist } from "zustand/middleware";
 import { demoContent } from "../content";
 import { ninjas } from "../content/demoContent";
 import type { EncounterId, EquipmentDefinition, EquipmentId, NinjaId } from "../domain/models";
-import type { BattleResult } from "../engine";
+import type { BattleResult, BattleRewardDrop } from "../engine";
 
-export const PLAYER_SAVE_VERSION = 4;
+export const PLAYER_SAVE_VERSION = 5;
 export const PLAYER_SAVE_STORAGE_KEY = "ninja-tactics-player-save";
 export const initialSquadIds: string[] = [];
 export const demoDefaultSquadIds = ["reed", "ember", "mist", "kite"];
@@ -46,6 +46,7 @@ export type ActiveBattleRun = {
   seed: string;
   squadIds: string[];
   completed: boolean;
+  isFirstClear: boolean;
 };
 
 export type BattleProgressAward = {
@@ -63,11 +64,7 @@ export type LastBattleReport = {
   turns: number;
   coins: number;
   squadExperience: number;
-  drop?: BattleResult["rewards"] extends infer Rewards
-    ? Rewards extends { drop?: infer Drop }
-      ? Drop
-      : never
-    : never;
+  drops: BattleRewardDrop[];
   squadIds: string[];
   progress: BattleProgressAward[];
   unlockedNinjaIds: string[];
@@ -152,6 +149,7 @@ export function migratePlayerSave(persisted: unknown, version: number): Persiste
         .filter((id) => unlockedNinjaIds.includes(id))
         .slice(0, 4)
     : fallback.squadIds;
+  const completedEncounterIds = encounterIds(persisted.completedEncounterIds);
   const migrated: PersistedPlayerState = {
     ...fallback,
     coins: finiteNumber(persisted.coins, fallback.coins),
@@ -171,10 +169,10 @@ export function migratePlayerSave(persisted: unknown, version: number): Persiste
     ninjaProgress: mergeNinjaProgress(persisted.ninjaProgress, fallback.ninjaProgress),
     ownedEquipment: equipmentNumberRecord(persisted.ownedEquipment, fallback.ownedEquipment),
     equipmentLevels: equipmentNumberRecord(persisted.equipmentLevels, fallback.equipmentLevels),
-    completedEncounterIds: encounterIds(persisted.completedEncounterIds),
+    completedEncounterIds,
     battleSerial: finiteNumber(persisted.battleSerial, 0),
-    activeBattle: validActiveBattle(persisted.activeBattle),
-    lastBattle: (persisted.lastBattle as LastBattleReport | null) ?? null,
+    activeBattle: validActiveBattle(persisted.activeBattle, completedEncounterIds),
+    lastBattle: validLastBattle(persisted.lastBattle),
     firstRunStep: isFirstRunStep(persisted.firstRunStep) ? persisted.firstRunStep : "squad",
   };
 }
@@ -251,6 +249,7 @@ export const usePlayerStore = create<PlayerState>()(
             seed: `vertical-slice-${encounterId.replace("encounter.", "")}-${battleSerial}`,
             squadIds: [...state.squadIds],
             completed: false,
+            isFirstClear: !state.completedEncounterIds.includes(encounterId),
           },
           firstRunStep: "battle",
         });
@@ -262,7 +261,11 @@ export const usePlayerStore = create<PlayerState>()(
         if (!activeBattle || state.lastBattle?.battleId === result.battleId) return false;
         const rewards = result.rewards;
         const squadExperience = rewards?.squadExperience ?? 0;
-        const coinDrop = rewards?.drop?.kind === "coins" ? rewards.drop.amount : 0;
+        const drops = rewards?.drops ?? [];
+        const coinDrop = drops.reduce(
+          (total, drop) => total + (drop.kind === "coins" ? drop.amount : 0),
+          0,
+        );
         const coins = (rewards?.coins ?? 0) + coinDrop;
         const ninjaProgress = { ...state.ninjaProgress };
         const progress = activeBattle.squadIds.map((ninjaId) => {
@@ -296,10 +299,10 @@ export const usePlayerStore = create<PlayerState>()(
         const newlyUnlockedNinjaIds = unlockedNinjaIds.filter(
           (ninjaId) => !state.unlockedNinjaIds.includes(ninjaId),
         );
-        if (rewards?.drop?.kind === "equipment" && rewards.drop.contentId) {
-          ownedEquipment[rewards.drop.contentId] =
-            (ownedEquipment[rewards.drop.contentId] ?? 0) + rewards.drop.amount;
-          equipmentLevels[rewards.drop.contentId] ??= 1;
+        for (const drop of drops) {
+          if (drop.kind !== "equipment" || !drop.contentId) continue;
+          ownedEquipment[drop.contentId] = (ownedEquipment[drop.contentId] ?? 0) + drop.amount;
+          equipmentLevels[drop.contentId] ??= 1;
         }
         set({
           coins: state.coins + coins,
@@ -319,7 +322,7 @@ export const usePlayerStore = create<PlayerState>()(
             turns: result.summary.turns,
             coins,
             squadExperience,
-            ...(rewards?.drop ? { drop: rewards.drop } : {}),
+            drops: [...drops],
             squadIds: [...activeBattle.squadIds],
             progress,
             unlockedNinjaIds: newlyUnlockedNinjaIds,
@@ -530,7 +533,10 @@ function encounterIds(value: unknown): EncounterId[] {
   );
 }
 
-function validActiveBattle(value: unknown): ActiveBattleRun | null {
+function validActiveBattle(
+  value: unknown,
+  completedEncounterIds: readonly EncounterId[] = [],
+): ActiveBattleRun | null {
   if (!isRecord(value) || typeof value.encounterId !== "string" || typeof value.seed !== "string") {
     return null;
   }
@@ -543,7 +549,22 @@ function validActiveBattle(value: unknown): ActiveBattleRun | null {
     seed: value.seed,
     squadIds,
     completed: Boolean(value.completed),
+    isFirstClear:
+      typeof value.isFirstClear === "boolean"
+        ? value.isFirstClear
+        : !completedEncounterIds.includes(value.encounterId as EncounterId),
   };
+}
+
+function validLastBattle(value: unknown): LastBattleReport | null {
+  if (!isRecord(value)) return null;
+  const legacyDrop = isRecord(value.drop) ? (value.drop as BattleRewardDrop) : undefined;
+  const drops = Array.isArray(value.drops)
+    ? (value.drops as BattleRewardDrop[])
+    : legacyDrop
+      ? [legacyDrop]
+      : [];
+  return { ...(value as LastBattleReport), drops };
 }
 
 function isFirstRunStep(value: unknown): value is FirstRunStep {

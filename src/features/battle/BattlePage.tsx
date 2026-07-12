@@ -38,8 +38,16 @@ export function BattlePage() {
       encounterId,
       playerTeam,
       seed: battleSeed,
+      isFirstClear: activeBattle?.isFirstClear ?? false,
     });
-  }, [battleSeed, encounterId, equipmentLevels, ninjaProgress, squadKey]);
+  }, [
+    activeBattle?.isFirstClear,
+    battleSeed,
+    encounterId,
+    equipmentLevels,
+    ninjaProgress,
+    squadKey,
+  ]);
   const playback = useBattlePlayback(result);
   const [isLogOpen, setLogOpen] = useState(false);
   const [battlefieldElement, setBattlefieldElement] = useState<HTMLElement | null>(null);

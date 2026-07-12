@@ -12,7 +12,13 @@ import type {
 } from "../domain/models";
 import { createSeededRng, type SeededRng } from "../shared/random/seededRng";
 import { createRuntimeUnits, snapshotRuntimeUnit, type RuntimeUnit } from "./runtime";
-import type { BattleInput, BattleResult, BattleRewards, BattleSide } from "./types";
+import type {
+  BattleInput,
+  BattleResult,
+  BattleRewardDrop,
+  BattleRewards,
+  BattleSide,
+} from "./types";
 
 const DEFAULT_MAXIMUM_TURNS = 100;
 const DEFAULT_MAXIMUM_PASSIVE_TRIGGERS = 50;
@@ -595,18 +601,26 @@ class BattleSimulation {
     const encounter = this.indexed.content.encounters.find(
       ({ id }) => id === this.input.encounterId,
     )!;
-    const table = this.indexed.content.rewardTables.find(
-      ({ id }) => id === encounter.rewardTableId,
-    )!;
-    const drop = table.weightedDrops.length
-      ? this.rng.weightedPick(table.weightedDrops.map((value) => ({ value, weight: value.weight })))
-      : undefined;
+    const tableIds = [
+      encounter.rewardTableId,
+      ...(this.input.isFirstClear && encounter.firstClearRewardTableId
+        ? [encounter.firstClearRewardTableId]
+        : []),
+    ];
+    const tables = tableIds.map((tableId) =>
+      this.indexed.content.rewardTables.find(({ id }) => id === tableId)!,
+    );
+    const drops = tables.flatMap((table): BattleRewardDrop[] => {
+      if (!table.weightedDrops.length) return [];
+      const drop = this.rng.weightedPick(
+        table.weightedDrops.map((value) => ({ value, weight: value.weight })),
+      );
+      return [{ kind: drop.kind, contentId: drop.contentId, amount: drop.amount }];
+    });
     this.rewards = {
-      coins: table.fixedCoins,
-      squadExperience: table.squadExperience,
-      ...(drop
-        ? { drop: { kind: drop.kind, contentId: drop.contentId, amount: drop.amount } }
-        : {}),
+      coins: tables.reduce((total, table) => total + table.fixedCoins, 0),
+      squadExperience: tables.reduce((total, table) => total + table.squadExperience, 0),
+      drops,
     };
     this.emit({ type: "rewardsCalculated", ...this.rewards });
   }

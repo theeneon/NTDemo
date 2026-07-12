@@ -291,7 +291,11 @@ export type BattleEvent =
         type: "rewardsCalculated";
         coins: number;
         squadExperience: number;
-        drop?: Readonly<{ kind: "equipment" | "coins"; contentId?: EquipmentId; amount: number }>;
+        drops: readonly Readonly<{
+          kind: "equipment" | "coins";
+          contentId?: EquipmentId;
+          amount: number;
+        }>[];
       }>)
   | (BattleEventBase & Readonly<{ type: "turnLimitReached"; maximumTurns: number }>)
   | (BattleEventBase & Readonly<{ type: "triggerLimitReached"; maximumTriggers: number }>)

@@ -35,7 +35,7 @@ describe("persisted player progression", () => {
       0,
     );
 
-    expect(migrated.saveVersion).toBe(4);
+    expect(migrated.saveVersion).toBe(5);
     expect(migrated.coins).toBe(777);
     expect(migrated.squadIds).toEqual(["reed", "ember"]);
     expect(migrated.ninjaProgress.reed?.level).toBe(3);
@@ -54,6 +54,7 @@ describe("persisted player progression", () => {
       content: demoContent,
       encounterId: active.encounterId,
       seed: active.seed,
+      isFirstClear: active.isFirstClear,
       playerTeam: active.squadIds.map((slug, slot) => ({
         ninjaId: ninjaIdFromSlug(slug),
         level: current.ninjaProgress[slug]!.level,
@@ -69,7 +70,11 @@ describe("persisted player progression", () => {
     expect(store.completeBattle(result)).toBe(true);
     expect(store.completeBattle(result)).toBe(false);
     const completed = usePlayerStore.getState();
-    const coinDrop = result.rewards?.drop?.kind === "coins" ? result.rewards.drop.amount : 0;
+    const coinDrop =
+      result.rewards?.drops.reduce(
+        (total, drop) => total + (drop.kind === "coins" ? drop.amount : 0),
+        0,
+      ) ?? 0;
     expect(completed.coins).toBe(startingCoins + (result.rewards?.coins ?? 0) + coinDrop);
     expect(completed.ninjaProgress.reed!.experience).toBe(
       startingExperience + (result.rewards?.squadExperience ?? 0),
@@ -127,6 +132,7 @@ describe("persisted player progression", () => {
       content: demoContent,
       encounterId: active.encounterId,
       seed: active.seed,
+      isFirstClear: active.isFirstClear,
       playerTeam: active.squadIds.map((slug, slot) => ({
         ninjaId: ninjaIdFromSlug(slug),
         level: current.ninjaProgress[slug]!.level,
@@ -139,6 +145,8 @@ describe("persisted player progression", () => {
     expect(result.outcome).toBe("victory");
     expect(store.completeBattle(result)).toBe(true);
     expect(usePlayerStore.getState().completedEncounterIds).toContain("encounter.border-watch");
+    expect(result.rewards).toMatchObject({ coins: 175, squadExperience: 60 });
+    expect(usePlayerStore.getState().ownedEquipment["equipment.ember-kunai"]).toBe(1);
     expect(
       isEncounterUnlocked("encounter.bamboo-pass", usePlayerStore.getState().completedEncounterIds),
     ).toBe(true);
